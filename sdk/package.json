@@ -1,6 +1,6 @@
 {
   "name": "@qova/core",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -9,24 +9,27 @@
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
     },
-    "./wallet": {
-      "import": "./dist/wallet.js",
-      "types": "./dist/wallet.d.ts"
+    "./abi": {
+      "import": "./dist/abi/index.js",
+      "types": "./dist/abi/index.d.ts"
     },
-    "./identity": {
-      "import": "./dist/identity.js",
-      "types": "./dist/identity.d.ts"
+    "./types": {
+      "import": "./dist/types/index.js",
+      "types": "./dist/types/index.d.ts"
     },
-    "./reputation": {
-      "import": "./dist/reputation.js",
-      "types": "./dist/reputation.d.ts"
+    "./utils": {
+      "import": "./dist/utils/index.js",
+      "types": "./dist/utils/index.d.ts"
     }
   },
   "files": ["dist"],
   "scripts": {
     "build": "tsc",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "check": "bunx biome check src/",
+    "check:fix": "bunx biome check --write src/"
   },
   "dependencies": {
     "viem": "^2.21.0",

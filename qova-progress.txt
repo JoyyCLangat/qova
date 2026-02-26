@@ -1,6 +1,6 @@
 QOVA PROGRESS TRACKER
 =====================
-Last Updated: 2026-02-26 (Phase 1 deployed to Base Sepolia)
+Last Updated: 2026-02-26 (Phase 2 SDK complete)
 
 === PHASE 0: MONOREPO SCAFFOLDING ===
 
@@ -38,13 +38,19 @@ Last Updated: 2026-02-26 (Phase 1 deployed to Base Sepolia)
 
 === PHASE 2: CORE SDK (@qova/core) ===
 
-[x] types.ts (Result pattern, Zod schemas)
-[ ] wallet.ts (Coinbase CDP wrapper + budget enforcement)
-[ ] identity.ts (agent identity registration/resolution)
-[ ] reputation.ts (score queries, feedback submission)
-[ ] facilitator.ts (x402 payment integration)
-[ ] budget.ts (spending limits and policy enforcement)
-[ ] Full Vitest test suite
+[x] ABI extraction (4 contracts from forge output, typed as const)
+[x] Type system (Zod schemas: agent, transaction, budget, config, events, errors)
+[x] Constants (chain IDs, deployed addresses, RPC URLs, score grades)
+[x] Client factory (createQovaClient with Zod-validated config)
+[x] Contract wrappers (reputation, transactions, budget, core -- read + write)
+[x] Event watchers (watchScoreUpdates, watchTransactions, watchAgentActions)
+[x] Utilities (score grading/colors, address formatting, wei conversion)
+[x] Error hierarchy (QovaError + 7 typed subclasses + mapContractError)
+[x] Full Vitest test suite (99 tests, 194 assertions, 7 files)
+[x] Biome clean (0 errors, 0 warnings)
+[x] TypeScript strict mode (0 errors)
+[ ] wallet.ts (Coinbase CDP wrapper -- Phase 6)
+[ ] facilitator.ts (x402 payment integration -- Phase 6)
 
 === PHASE 3: CRE WORKFLOWS (HACKATHON PRIORITY) ===
 
