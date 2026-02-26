@@ -1,19 +1,25 @@
 {
   "name": "@qova/api",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "type": "module",
+  "private": true,
   "scripts": {
-    "dev": "bun --hot src/server.ts",
-    "build": "bun build src/server.ts --outdir dist --target bun",
+    "dev": "bun run --hot src/index.ts",
+    "start": "bun run src/index.ts",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "check": "bunx biome check src/",
+    "check:fix": "bunx biome check --write src/"
   },
   "dependencies": {
+    "@qova/core": "workspace:*",
     "hono": "^4.7.0",
-    "zod": "^3.24.0",
-    "@hono/zod-validator": "^0.4.0"
+    "viem": "^2.21.0",
+    "zod": "^3.24.0"
   },
   "devDependencies": {
+    "@biomejs/biome": "latest",
+    "@types/bun": "latest",
     "typescript": "^5.7.0",
     "vitest": "^3.0.0"
   }

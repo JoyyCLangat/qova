@@ -1,6 +1,6 @@
 QOVA PROGRESS TRACKER
 =====================
-Last Updated: 2026-02-26 (Phase 3 CRE workflows complete)
+Last Updated: 2026-02-26 (Phase 4 API service complete)
 
 === PHASE 0: MONOREPO SCAFFOLDING ===
 
@@ -73,16 +73,32 @@ Last Updated: 2026-02-26 (Phase 3 CRE workflows complete)
 
 === PHASE 4: API SERVICE ===
 
-[x] Hono server with middleware (CORS, logging)
-[ ] Auth middleware (Clerk JWT)
-[ ] Rate limiting middleware
-[ ] Zod validation middleware
-[ ] Routes: /agents (CRUD)
-[ ] Routes: /reputation (score queries)
-[ ] Routes: /transactions (log + query)
-[ ] Routes: /scores (detailed breakdown)
-[ ] Convex integration
-[ ] OpenAPI spec generation
+[x] Hono app with middleware stack (CORS, logger, prettyJSON, error handler)
+[x] Typed AppEnv for Hono context variables
+[x] Error handler middleware (SDK errors -> HTTP status codes)
+[x] Zod validation middleware (body + address param)
+[x] In-memory TTL cache middleware (30s default)
+[x] SDK client singleton service (createQovaClient, optional wallet)
+[x] Scoring service (CRE-identical algorithm, synced with cre/shared/scoring.ts)
+[x] Enrichment service (SDK utils: grades, colors, formatting)
+[x] Zod request schemas (12 schemas)
+[x] Zod response schemas (6 schemas)
+[x] Routes: /api/agents (7 endpoints: list, details, score, registered, register, update, batch)
+[x] Routes: /api/transactions (2 endpoints: stats, record)
+[x] Routes: /api/budgets (4 endpoints: status, set, check, spend)
+[x] Routes: /api/scores (5 endpoints: agents, enrich, anomaly-check, compute, breakdown)
+[x] Routes: /api/verify (2 endpoints: verify, sanctions)
+[x] CRE backward-compat routes: /v1/agents, /v1/enrich, /v1/anomaly-check, /v1/sanctions/check, /v1/webhook
+[x] Bun-native entry point (src/index.ts)
+[x] Test suite: 10 files, 44 tests passing (routes, middleware, services)
+[x] TypeScript strict mode (0 errors)
+[x] Biome clean (0 errors, 0 warnings)
+[x] ADR-010: API Architecture
+[x] API CLAUDE.md updated
+[ ] Auth middleware (Clerk JWT -- Phase 5)
+[ ] Rate limiting middleware (pre-production)
+[ ] Convex integration (Phase 5)
+[ ] OpenAPI spec generation (nice-to-have)
 
 === PHASE 5: DASHBOARD ===
 
