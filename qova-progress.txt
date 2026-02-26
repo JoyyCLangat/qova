@@ -1,6 +1,6 @@
 QOVA PROGRESS TRACKER
 =====================
-Last Updated: 2026-02-26
+Last Updated: 2026-02-26 (Phase 1 contracts complete)
 
 === PHASE 0: MONOREPO SCAFFOLDING ===
 
@@ -24,12 +24,14 @@ Last Updated: 2026-02-26
 
 === PHASE 1: SMART CONTRACTS ===
 
-[ ] QovaIdentityRegistry.sol (ERC-8004 + ERC-721)
-[ ] QovaReputationRegistry.sol (feedback + score snapshots)
-[ ] QovaFacilitator.sol (x402 payment processing)
-[ ] Unit tests for all contracts
-[ ] Fuzz tests for numeric inputs
-[ ] Invariant tests for critical properties
+[x] ReputationRegistry.sol (score tracking, batch updates, AccessControl, Pausable)
+[x] TransactionValidator.sol (tx recording, stats aggregation, success rate)
+[x] BudgetEnforcer.sol (daily/monthly/per-tx limits, lazy resets)
+[x] QovaCore.sol (facade: budget check -> record tx -> emit event)
+[x] Unit tests for all contracts (35 tests)
+[x] Fuzz tests for numeric inputs (4 fuzz tests, 256 runs each)
+[x] Integration test (full flow: register -> budget -> execute -> verify)
+[x] Deploy script (script/Deploy.s.sol)
 [ ] Deploy to Base Sepolia
 [ ] Security audit before deployment
 
