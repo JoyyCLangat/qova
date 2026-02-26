@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "shadcn": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://www.shadcn.io/api/mcp"]
+    },
+    "shadcn-ui-server": {
+      "command": "npx",
+      "args": ["-y", "shadcn-ui-mcp-server"]
+    }
+  }
+}

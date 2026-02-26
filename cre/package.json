@@ -1,0 +1,10 @@
+{
+  "name": "@qova/cre",
+  "version": "0.0.1",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "echo 'CRE workflows compile via cre-cli'",
+    "test": "echo 'CRE tests pending sdk availability'"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "qova",
+  "private": true,
+  "workspaces": ["contracts", "sdk", "api", "dashboard", "cre", "integrations/*"],
+  "scripts": {
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "check": "biome check --write .",
+    "dev": "turbo run dev"
+  },
+  "devDependencies": {
+    "turbo": "latest",
+    "@biomejs/biome": "latest",
+    "typescript": "^5.7.0"
+  }
+}

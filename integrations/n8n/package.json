@@ -1,0 +1,10 @@
+{
+  "name": "@qova/n8n",
+  "version": "0.0.1",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "test": "echo 'Integration tests pending'"
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "name": "@qova/core",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./wallet": {
+      "import": "./dist/wallet.js",
+      "types": "./dist/wallet.d.ts"
+    },
+    "./identity": {
+      "import": "./dist/identity.js",
+      "types": "./dist/identity.d.ts"
+    },
+    "./reputation": {
+      "import": "./dist/reputation.js",
+      "types": "./dist/reputation.d.ts"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "viem": "^2.21.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}

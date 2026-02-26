@@ -1,0 +1,15 @@
+node_modules/
+.env
+.env.local
+dist/
+out/
+.next/
+.turbo/
+cache/
+*.log
+.DS_Store
+contracts/out/
+contracts/cache/
+.convex/
+.claude/settings.local.json
+bun.lock
