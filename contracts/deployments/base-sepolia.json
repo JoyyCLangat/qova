@@ -1,0 +1,45 @@
+{
+  "network": "base-sepolia",
+  "chainId": 84532,
+  "deployer": "0x0a3AF9a104Bd2B5d96C7E24fe95Cc03432431158",
+  "deployedAt": "2026-02-26",
+  "solidityVersion": "0.8.28",
+  "evmVersion": "cancun",
+  "optimizerRuns": 200,
+  "contracts": {
+    "ReputationRegistry": {
+      "address": "0x0b2466b01E6d73A24D9C716A9072ED3923563fBB",
+      "txHash": "0xa12f19a3cfacf4ae0d14b46f2c76ce58f1d67d9d3e7f45cf5ac045101156d9a3"
+    },
+    "TransactionValidator": {
+      "address": "0x5d7a7AEAb26D2F0076892D1C9A28F230EbB3e900",
+      "txHash": "0x3669b5e379286230223d3dc2687eb96be691952cecff337d494dec6af44749df"
+    },
+    "BudgetEnforcer": {
+      "address": "0x271618781040dc358e4F6B66561b65A839b0C76E",
+      "txHash": "0x1aa7efcf6c3ec5e3e2b370446cacf59062ff8763fbe3d1225792c694581a80dd"
+    },
+    "QovaCore": {
+      "address": "0x9Ee4ae0bD93E95498fB6AB444ae6205d56fEf76a",
+      "txHash": "0x35c0b2f6fa2d4d22a22fc2fd0b564f9e5ecc6dbfafcba7cbc12deb828d3b9451"
+    }
+  },
+  "roleGrants": {
+    "UPDATER_ROLE": {
+      "contract": "ReputationRegistry",
+      "grantee": "QovaCore",
+      "txHash": "0xedaa669a4f53dd3cdeaa8b2b07303e2ac8f968a6fed90e0c09f2a9905acc477d"
+    },
+    "RECORDER_ROLE": {
+      "contract": "TransactionValidator",
+      "grantee": "QovaCore",
+      "txHash": "0x974eb7acaefa01f7eb21f1ce523c8d4d281c42b25c08a0d0cf54489c61939b48"
+    },
+    "BUDGET_MANAGER_ROLE": {
+      "contract": "BudgetEnforcer",
+      "grantee": "QovaCore",
+      "txHash": "0x4f465e7149b55fba9403579ddb80e5448cf1cf40b1778b8029f0658ce3cb71b5"
+    }
+  },
+  "blockExplorer": "https://sepolia.basescan.org"
+}

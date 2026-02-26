@@ -1,6 +1,6 @@
 QOVA PROGRESS TRACKER
 =====================
-Last Updated: 2026-02-26 (Phase 1 contracts complete)
+Last Updated: 2026-02-26 (Phase 1 deployed to Base Sepolia)
 
 === PHASE 0: MONOREPO SCAFFOLDING ===
 
@@ -32,8 +32,9 @@ Last Updated: 2026-02-26 (Phase 1 contracts complete)
 [x] Fuzz tests for numeric inputs (4 fuzz tests, 256 runs each)
 [x] Integration test (full flow: register -> budget -> execute -> verify)
 [x] Deploy script (script/Deploy.s.sol)
-[ ] Deploy to Base Sepolia
-[ ] Security audit before deployment
+[x] Deploy to Base Sepolia (4 contracts + 3 role grants, 2026-02-26)
+[ ] Basescan source verification (optional, needs API key)
+[ ] Security audit before mainnet
 
 === PHASE 2: CORE SDK (@qova/core) ===
 
