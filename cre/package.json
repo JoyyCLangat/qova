@@ -1,10 +1,27 @@
 {
-  "name": "@qova/cre",
-  "version": "0.0.1",
-  "type": "module",
-  "private": true,
-  "scripts": {
-    "build": "echo 'CRE workflows compile via cre-cli'",
-    "test": "echo 'CRE tests pending sdk availability'"
-  }
+	"name": "@qova/cre",
+	"version": "0.1.0",
+	"type": "module",
+	"private": true,
+	"scripts": {
+		"simulate:reputation": "cre workflow simulate --target local-simulation --config config.json reputation-oracle/index.ts",
+		"simulate:monitor": "cre workflow simulate --target local-simulation --config config.json transaction-monitor/index.ts",
+		"simulate:budget": "cre workflow simulate --target local-simulation --config config.json budget-alert/index.ts",
+		"simulate:verify": "cre workflow simulate --target local-simulation --config config.json agent-verify/index.ts",
+		"simulate:all": "bun run simulate:reputation && bun run simulate:monitor && bun run simulate:budget && bun run simulate:verify",
+		"mock-api": "bun run mock-api/server.ts",
+		"test": "bun test",
+		"check": "bunx biome check .",
+		"check:fix": "bunx biome check --write ."
+	},
+	"dependencies": {
+		"@chainlink/cre-sdk": "^1.1.2",
+		"viem": "^2.21.0",
+		"zod": "^3.24.0"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.4.0",
+		"@types/bun": "^1.3.9",
+		"typescript": "^5.7.0"
+	}
 }

@@ -1,6 +1,6 @@
 QOVA PROGRESS TRACKER
 =====================
-Last Updated: 2026-02-26 (Phase 2 SDK complete)
+Last Updated: 2026-02-26 (Phase 3 CRE workflows complete)
 
 === PHASE 0: MONOREPO SCAFFOLDING ===
 
@@ -54,10 +54,22 @@ Last Updated: 2026-02-26 (Phase 2 SDK complete)
 
 === PHASE 3: CRE WORKFLOWS (HACKATHON PRIORITY) ===
 
-[ ] Reputation Scoring Workflow (cron + HTTP trigger)
-[ ] Pre-Transaction Trust Check Workflow (HTTP trigger)
-[ ] CRE workflow simulation tests
-[ ] WASM compilation verification
+[x] Shared modules: constants, contracts (ABI), scoring algorithm, Zod config schemas
+[x] Reputation Oracle workflow (cron trigger, on-chain reads, off-chain enrichment, score write)
+[x] Transaction Monitor workflow (EVM log trigger, anomaly detection, webhook alerts)
+[x] Budget Alert workflow (EVM log trigger, utilization threshold, webhook alerts)
+[x] Agent Verify workflow (HTTP trigger, on-demand verification, credit grades)
+[x] QovaReputationConsumer.sol (CRE report receiver, replay protection)
+[x] Mock Scoring API (Bun server on port 3001, 5 endpoints)
+[x] Unit tests: 22 tests passing (scoring 7, contracts 8, config 6, + 1 mock API)
+[x] Workflow READMEs (4 workflows)
+[x] ADR-007: CRE Integration Architecture
+[x] CRE CLAUDE.md updated
+[x] TypeScript strict mode (0 errors)
+[x] Biome clean (0 errors, 0 warnings)
+[x] Old stub workflows deleted (reputation-workflow/, trust-check-workflow/)
+[ ] CRE CLI simulation tests (requires CRE CLI binary)
+[ ] WASM compilation verification (requires CRE CLI binary)
 
 === PHASE 4: API SERVICE ===
 

@@ -1,0 +1,7 @@
+{
+	"evm": {
+		"chainSelectorName": "ethereum-testnet-sepolia-base-1",
+		"budgetEnforcer": "0x271618781040dc358e4F6B66561b65A839b0C76E"
+	},
+	"alertWebhookUrl": "http://localhost:3001/v1/webhook"
+}
