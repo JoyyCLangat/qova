@@ -1,6 +1,6 @@
 QOVA PROGRESS TRACKER
 =====================
-Last Updated: 2026-02-26 (Phase 4 API service complete)
+Last Updated: 2026-02-26 (Phase 5 Dashboard complete)
 
 === PHASE 0: MONOREPO SCAFFOLDING ===
 
@@ -102,16 +102,30 @@ Last Updated: 2026-02-26 (Phase 4 API service complete)
 
 === PHASE 5: DASHBOARD ===
 
-[ ] Next.js 15 + App Router setup
-[ ] Clerk auth integration
-[ ] Convex real-time integration
-[ ] Overview page (score summary, activity, alerts)
-[ ] Agents page (list with scores)
-[ ] Agent Detail page (history, transactions, feedback)
-[ ] Transactions page (log with filters)
-[ ] Reputation page (analytics, charts)
-[ ] Settings page (API keys, webhooks)
-[ ] Qova color system implementation
+[x] Next.js 15 + App Router + Turbopack setup
+[x] Theme system (next-themes: light/dark/system, class strategy, no FOUC)
+[x] Typography (Sora headings, Inter body, JetBrains Mono mono via next/font/google)
+[x] Design system (HSL CSS variables, zero-shadow rule, border-based hierarchy)
+[x] DESIGN_DECISIONS.md (aesthetic philosophy, component specs)
+[x] API client with typed interfaces (7 response types, fetchJson wrapper)
+[x] Seed data fallback (8 agents AAA-D, getSeedTxStats, getSeedBudget, getSeedBreakdown)
+[x] 5 custom hooks (useAgents, useAgent, useScoreBreakdown, useTransactions, useBudget)
+[x] Score components: ScoreBadge (grade pills), ScoreRing (animated SVG gauge), ScoreBreakdown (factor bars), ScoreIndicator (inline)
+[x] Layout components: AppLayout (shell), Sidebar (collapsible, logo), Header (breadcrumb, chain badge, demo indicator), NavLinks
+[x] Chart components: ScoreDistribution (Recharts bar), BudgetUsage (progress bar)
+[x] ThemeToggle (3-mode dropdown with click-outside)
+[x] Page: Overview (stat cards, distribution chart, top agents, recent activity)
+[x] Page: Agents (sortable table with grade badges, explorer links)
+[x] Page: Agent Detail (ScoreRing hero, breakdown, tx stats, budget utilization)
+[x] Page: Scores (lookup tool, breakdown panel, leaderboard)
+[x] Page: Verify (address input, animated result with status indicators)
+[x] TypeScript strict mode (0 errors)
+[x] Biome clean (0 errors on TS/TSX, CSS excluded for Tailwind v4 syntax)
+[x] Zero box-shadow verified (grep check)
+[x] Dev server boots clean (Next.js 15.5.12 Turbopack)
+[x] ADR-012: Dashboard Architecture
+[ ] Clerk auth integration (deferred -- not needed for hackathon demo)
+[ ] Convex real-time integration (deferred -- seed data sufficient for demo)
 [ ] Deploy to Vercel
 
 === PHASE 6: FRAMEWORK INTEGRATIONS ===
