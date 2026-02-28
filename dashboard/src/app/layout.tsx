@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ThemeProvider } from "next-themes";
+import { Providers } from "@/components/providers/providers";
 import { bodyFont, headingFont, monoFont } from "@/lib/fonts";
 import "./globals.css";
 
@@ -20,9 +20,7 @@ export default function RootLayout({
 			className={`${headingFont.variable} ${bodyFont.variable} ${monoFont.variable}`}
 		>
 			<body className="min-h-screen antialiased">
-				<ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-					{children}
-				</ThemeProvider>
+				<Providers>{children}</Providers>
 			</body>
 		</html>
 	);

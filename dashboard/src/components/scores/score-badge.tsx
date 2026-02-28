@@ -18,7 +18,7 @@ const sizeClasses: Record<string, string> = {
 	xl: "text-xl px-5 py-2",
 };
 
-function getGradeColor(grade: string): "green" | "yellow" | "red" {
+function getGradeColorKey(grade: string): "green" | "yellow" | "red" {
 	const greenGrades = ["AAA", "AA", "A", "BBB"];
 	const yellowGrades = ["BB", "B", "CCC"];
 	if (greenGrades.includes(grade)) return "green";
@@ -32,7 +32,7 @@ export function ScoreBadge({
 	size = "md",
 	showScore = false,
 }: ScoreBadgeProps): React.ReactElement {
-	const color = getGradeColor(grade);
+	const color = getGradeColorKey(grade);
 
 	return (
 		<span
@@ -41,9 +41,9 @@ export function ScoreBadge({
 				sizeClasses[size],
 			)}
 			style={{
-				background: `hsl(var(--score-${color}-bg))`,
-				color: `hsl(var(--score-${color}))`,
-				borderColor: `hsl(var(--score-${color}-border))`,
+				background: `var(--score-${color}-bg)`,
+				color: `var(--score-${color})`,
+				borderColor: `var(--score-${color}-border)`,
 			}}
 		>
 			{grade}

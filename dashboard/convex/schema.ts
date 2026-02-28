@@ -1,0 +1,174 @@
+import { defineSchema, defineTable } from "convex/server";
+import { v } from "convex/values";
+
+export default defineSchema({
+  // ─── Core Agent Tables ───────────────────────────────────────────
+  agents: defineTable({
+    address: v.string(),
+    score: v.number(),
+    grade: v.string(),
+    gradeColor: v.string(),
+    scoreFormatted: v.string(),
+    scorePercentage: v.number(),
+    lastUpdated: v.string(),
+    updateCount: v.number(),
+    isRegistered: v.boolean(),
+    addressShort: v.string(),
+    explorerUrl: v.string(),
+    // Owner (Clerk userId)
+    ownerId: v.optional(v.string()),
+    orgId: v.optional(v.string()),
+    // Transaction stats (cached from API)
+    totalTxCount: v.optional(v.number()),
+    totalVolume: v.optional(v.string()),
+    successRate: v.optional(v.string()),
+    lastActivity: v.optional(v.string()),
+    // Budget (cached from API)
+    dailyLimit: v.optional(v.string()),
+    monthlyLimit: v.optional(v.string()),
+    perTxLimit: v.optional(v.string()),
+    dailySpent: v.optional(v.string()),
+    monthlySpent: v.optional(v.string()),
+  })
+    .index("by_address", ["address"])
+    .index("by_score", ["score"])
+    .index("by_grade", ["grade"])
+    .index("by_owner", ["ownerId"]),
+
+  activity: defineTable({
+    agent: v.string(),
+    addressShort: v.string(),
+    type: v.string(),
+    description: v.string(),
+    amount: v.optional(v.string()),
+    txHash: v.optional(v.string()),
+    timestamp: v.number(),
+  })
+    .index("by_agent", ["agent"])
+    .index("by_type", ["type"])
+    .index("by_timestamp", ["timestamp"]),
+
+  scoreSnapshots: defineTable({
+    agent: v.string(),
+    score: v.number(),
+    grade: v.string(),
+    gradeColor: v.string(),
+    timestamp: v.number(),
+  })
+    .index("by_agent", ["agent"])
+    .index("by_agent_time", ["agent", "timestamp"]),
+
+  systemStats: defineTable({
+    key: v.string(),
+    value: v.union(v.string(), v.number()),
+    updatedAt: v.number(),
+  }).index("by_key", ["key"]),
+
+  // ─── Auth & Users ────────────────────────────────────────────────
+  users: defineTable({
+    clerkId: v.string(),
+    email: v.string(),
+    name: v.optional(v.string()),
+    imageUrl: v.optional(v.string()),
+    role: v.string(), // "owner" | "admin" | "developer" | "viewer" | "billing"
+    orgId: v.optional(v.string()),
+    onboardingComplete: v.boolean(),
+    createdAt: v.number(),
+    lastLoginAt: v.optional(v.number()),
+  })
+    .index("by_clerk_id", ["clerkId"])
+    .index("by_email", ["email"])
+    .index("by_org", ["orgId"]),
+
+  organizations: defineTable({
+    clerkOrgId: v.optional(v.string()),
+    name: v.string(),
+    slug: v.string(),
+    imageUrl: v.optional(v.string()),
+    plan: v.string(), // "free" | "pro" | "enterprise"
+    createdBy: v.string(), // userId
+    createdAt: v.number(),
+  })
+    .index("by_clerk_org", ["clerkOrgId"])
+    .index("by_slug", ["slug"]),
+
+  // ─── API Keys & Webhooks ─────────────────────────────────────────
+  apiKeys: defineTable({
+    userId: v.string(),
+    orgId: v.optional(v.string()),
+    name: v.string(),
+    keyPrefix: v.string(), // first 8 chars for display
+    keyHash: v.string(), // SHA-256 hash of full key
+    scopes: v.array(v.string()),
+    lastUsedAt: v.optional(v.number()),
+    expiresAt: v.optional(v.number()),
+    createdAt: v.number(),
+    isActive: v.boolean(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_hash", ["keyHash"]),
+
+  webhooks: defineTable({
+    userId: v.string(),
+    orgId: v.optional(v.string()),
+    url: v.string(),
+    events: v.array(v.string()),
+    secret: v.string(),
+    isActive: v.boolean(),
+    createdAt: v.number(),
+  })
+    .index("by_user", ["userId"]),
+
+  webhookDeliveries: defineTable({
+    webhookId: v.id("webhooks"),
+    event: v.string(),
+    payload: v.string(),
+    statusCode: v.optional(v.number()),
+    response: v.optional(v.string()),
+    deliveredAt: v.number(),
+    success: v.boolean(),
+  })
+    .index("by_webhook", ["webhookId"])
+    .index("by_time", ["deliveredAt"]),
+
+  // ─── Notifications ───────────────────────────────────────────────
+  notifications: defineTable({
+    userId: v.string(),
+    type: v.string(), // "score_change" | "budget_alert" | "verification" | "system"
+    title: v.string(),
+    message: v.string(),
+    agentAddress: v.optional(v.string()),
+    read: v.boolean(),
+    createdAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_unread", ["userId", "read"]),
+
+  // ─── Audit Log ───────────────────────────────────────────────────
+  auditLog: defineTable({
+    userId: v.string(),
+    action: v.string(), // "agent.register" | "agent.verify" | "budget.set" | "api_key.create" | etc.
+    resource: v.string(), // resource type
+    resourceId: v.optional(v.string()),
+    metadata: v.optional(v.string()), // JSON stringified details
+    ipAddress: v.optional(v.string()),
+    timestamp: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_action", ["action"])
+    .index("by_timestamp", ["timestamp"]),
+
+  // ─── Integrations ────────────────────────────────────────────────
+  integrations: defineTable({
+    userId: v.string(),
+    orgId: v.optional(v.string()),
+    type: v.string(), // "chainlink_cre" | "x402" | "base_rpc" | etc.
+    name: v.string(),
+    config: v.string(), // JSON stringified config
+    isActive: v.boolean(),
+    lastSyncAt: v.optional(v.number()),
+    createdAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_type", ["type"]),
+});

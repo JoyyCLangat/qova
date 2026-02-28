@@ -120,6 +120,35 @@ export interface HealthResponse {
 	chain: string;
 }
 
+export interface RecordTxRequest {
+	agent: string;
+	txHash: string;
+	amount: string;
+	txType: number;
+}
+
+export interface RecordTxResponse {
+	success: boolean;
+	txHash: string;
+	agent: string;
+}
+
+export interface SetBudgetRequest {
+	dailyLimit: string;
+	monthlyLimit: string;
+	perTxLimit: string;
+}
+
+export interface SetBudgetResponse {
+	success: boolean;
+	agent: string;
+	config: {
+		dailyLimit: string;
+		monthlyLimit: string;
+		perTxLimit: string;
+	};
+}
+
 export const api = {
 	getAgents: () => fetchJson<AgentListResponse>("/agents"),
 	getAgent: (addr: string) => fetchJson<AgentDetailsResponse>(`/agents/${addr}`),
@@ -127,6 +156,16 @@ export const api = {
 	getScoreBreakdown: (addr: string) => fetchJson<ScoreBreakdownResponse>(`/scores/${addr}`),
 	getTxStats: (addr: string) => fetchJson<TxStatsResponse>(`/transactions/${addr}/stats`),
 	getBudget: (addr: string) => fetchJson<BudgetResponse>(`/budgets/${addr}`),
+	recordTransaction: (data: RecordTxRequest) =>
+		fetchJson<RecordTxResponse>("/transactions/record", {
+			method: "POST",
+			body: JSON.stringify(data),
+		}),
+	setBudget: (addr: string, data: SetBudgetRequest) =>
+		fetchJson<SetBudgetResponse>(`/budgets/${addr}/set`, {
+			method: "POST",
+			body: JSON.stringify(data),
+		}),
 	verify: (addr: string) =>
 		fetchJson<VerifyResponse>("/verify", {
 			method: "POST",

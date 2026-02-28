@@ -1,94 +1,79 @@
-"use client";
+"use client"
 
-import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import type { AgentDetailsResponse } from "@/lib/api";
-import type { ScoreGrade } from "@/lib/constants";
+import { Bar, BarChart, CartesianGrid, Cell, XAxis, YAxis } from "recharts"
+import { useGradeDistribution } from "@/hooks/use-convex-data"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/components/ui/chart"
 
-const GRADE_ORDER: ScoreGrade[] = ["AAA", "AA", "A", "BBB", "BB", "B", "CCC", "CC", "C", "D"];
+const GRADE_ORDER = ["AAA", "AA", "A", "BBB", "BB", "B", "CCC", "CC", "C", "D"]
 
-function getBarColor(grade: ScoreGrade): string {
-	switch (grade) {
-		case "AAA":
-		case "AA":
-		case "A":
-		case "BBB":
-			return "#22C55E";
-		case "BB":
-		case "B":
-		case "CCC":
-			return "#FACC15";
-		case "CC":
-		case "C":
-		case "D":
-			return "#EF4444";
-	}
+function gradeColor(grade: string): string {
+  if (["AAA", "AA", "A", "BBB"].includes(grade)) return "var(--score-green)"
+  if (["BB", "B", "CCC"].includes(grade)) return "var(--score-yellow)"
+  return "var(--score-red)"
 }
 
-interface GradeBucket {
-	grade: ScoreGrade;
-	count: number;
-}
+const chartConfig = {
+  count: {
+    label: "Agents",
+    color: "var(--chart-1)",
+  },
+} satisfies ChartConfig
 
-function CustomTooltip({
-	active,
-	payload,
-	label,
-}: {
-	active?: boolean;
-	payload?: Array<{ value: number }>;
-	label?: string;
-}): React.ReactElement | null {
-	if (!active || !payload?.length) return null;
-	return (
-		<div className="rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--popover))] px-3 py-2 text-xs">
-			<p className="font-medium text-[hsl(var(--popover-foreground))]">{label}</p>
-			<p className="text-[hsl(var(--muted-foreground))]">
-				{payload[0].value} agent{payload[0].value !== 1 ? "s" : ""}
-			</p>
-		</div>
-	);
-}
+export function ScoreDistribution() {
+  const distribution = useGradeDistribution()
 
-export function ScoreDistribution({
-	agents,
-}: {
-	agents: AgentDetailsResponse[];
-}): React.ReactElement {
-	const buckets: GradeBucket[] = GRADE_ORDER.map((grade) => ({
-		grade,
-		count: agents.filter((a) => a.grade === grade).length,
-	}));
+  const chartData = GRADE_ORDER.map((grade) => ({
+    grade,
+    count: distribution[grade] ?? 0,
+    fill: gradeColor(grade),
+  }))
 
-	return (
-		<div className="h-[300px] w-full">
-			<ResponsiveContainer width="100%" height="100%">
-				<BarChart data={buckets} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
-					<XAxis
-						dataKey="grade"
-						axisLine={false}
-						tickLine={false}
-						tick={{
-							fontSize: 12,
-							fill: "hsl(var(--muted-foreground))",
-						}}
-					/>
-					<YAxis
-						allowDecimals={false}
-						axisLine={false}
-						tickLine={false}
-						tick={{
-							fontSize: 12,
-							fill: "hsl(var(--muted-foreground))",
-						}}
-					/>
-					<Tooltip content={<CustomTooltip />} cursor={{ fill: "hsl(var(--muted) / 0.3)" }} />
-					<Bar dataKey="count" radius={[4, 4, 0, 0]} maxBarSize={40}>
-						{buckets.map((bucket) => (
-							<Cell key={bucket.grade} fill={getBarColor(bucket.grade)} />
-						))}
-					</Bar>
-				</BarChart>
-			</ResponsiveContainer>
-		</div>
-	);
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Grade Distribution</CardTitle>
+        <CardDescription>Agents by credit grade</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ChartContainer config={chartConfig} className="h-[250px] w-full">
+          <BarChart data={chartData} accessibilityLayer>
+            <CartesianGrid vertical={false} />
+            <XAxis
+              dataKey="grade"
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+            />
+            <YAxis
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+              width={30}
+              allowDecimals={false}
+            />
+            <ChartTooltip
+              content={<ChartTooltipContent hideIndicator />}
+            />
+            <Bar dataKey="count" radius={[4, 4, 0, 0]} maxBarSize={40}>
+              {chartData.map((entry) => (
+                <Cell key={entry.grade} fill={entry.fill} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ChartContainer>
+      </CardContent>
+    </Card>
+  )
 }

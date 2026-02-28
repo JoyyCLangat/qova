@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
 interface ScoreRingProps {
@@ -7,10 +8,9 @@ interface ScoreRingProps {
 	grade: string;
 	size?: number;
 	strokeWidth?: number;
-	animated?: boolean;
 }
 
-function getScoreHslVar(score: number): string {
+function getScoreColor(score: number): string {
 	if (score >= 700) return "var(--score-green)";
 	if (score >= 400) return "var(--score-yellow)";
 	return "var(--score-red)";
@@ -21,34 +21,33 @@ export function ScoreRing({
 	grade,
 	size = 200,
 	strokeWidth = 12,
-	animated = true,
 }: ScoreRingProps): React.ReactElement {
 	const radius = (size - strokeWidth) / 2;
 	const circumference = 2 * Math.PI * radius;
 	const percentage = Math.max(0, Math.min(1000, score)) / 1000;
 	const targetOffset = circumference * (1 - percentage);
 
-	const [offset, setOffset] = useState(animated ? circumference : targetOffset);
+	const [offset, setOffset] = useState(circumference);
 
 	useEffect(() => {
-		if (!animated) {
-			setOffset(targetOffset);
-			return;
-		}
-		// Defer to next frame so the CSS transition triggers from the initial value
 		const frame = requestAnimationFrame(() => {
 			setOffset(targetOffset);
 		});
-		return () => cancelAnimationFrame(frame);
-	}, [animated, targetOffset]);
+		return (): void => {
+			cancelAnimationFrame(frame);
+		};
+	}, [targetOffset]);
 
 	const center = size / 2;
-	const strokeColor = `hsl(${getScoreHslVar(score)})`;
+	const strokeColor = getScoreColor(score);
 
 	return (
-		<div
+		<motion.div
 			className="relative inline-flex items-center justify-center"
 			style={{ width: size, height: size }}
+			initial={{ opacity: 0, scale: 0.9 }}
+			animate={{ opacity: 1, scale: 1 }}
+			transition={{ duration: 0.5, ease: "easeOut" }}
 		>
 			<svg
 				width={size}
@@ -64,9 +63,9 @@ export function ScoreRing({
 					cy={center}
 					r={radius}
 					fill="none"
-					stroke="hsl(var(--border))"
+					stroke="var(--border)"
 					strokeWidth={strokeWidth}
-					opacity={0.3}
+					opacity={0.15}
 				/>
 				{/* Colored fill */}
 				<circle
@@ -87,10 +86,10 @@ export function ScoreRing({
 			{/* Center text */}
 			<div className="absolute inset-0 flex flex-col items-center justify-center">
 				<span className="font-heading text-4xl font-bold leading-none">{grade}</span>
-				<span className="mt-1 font-mono text-sm text-[hsl(var(--muted-foreground))]">
+				<span className="mt-1 font-mono text-sm text-[var(--muted-foreground)]">
 					{score}/1000
 				</span>
 			</div>
-		</div>
+		</motion.div>
 	);
 }

@@ -1,11 +1,12 @@
 "use client";
 
 function getFillColor(percentage: number): string {
-	if (percentage < 60) return "#22C55E";
-	if (percentage <= 80) return "#FACC15";
-	return "#EF4444";
+	if (percentage < 60) return "var(--score-green)";
+	if (percentage <= 80) return "var(--score-yellow)";
+	return "var(--score-red)";
 }
 
+/** Single budget bar -- used by existing pages. */
 export function BudgetUsage({
 	label,
 	percentage,
@@ -22,12 +23,12 @@ export function BudgetUsage({
 	return (
 		<div className="space-y-2">
 			<div className="flex items-center justify-between text-sm">
-				<span className="text-[hsl(var(--foreground))]">{label}</span>
-				<span className="font-mono text-xs" style={{ color: getFillColor(clamped) }}>
+				<span className="text-[var(--foreground)]">{label}</span>
+				<span className="font-mono text-xs font-medium" style={{ color: getFillColor(clamped) }}>
 					{clamped.toFixed(1)}%
 				</span>
 			</div>
-			<div className="h-2 w-full overflow-hidden rounded-full bg-[hsl(var(--muted))]">
+			<div className="h-2 w-full overflow-hidden rounded-full bg-[var(--muted)]">
 				<div
 					className="h-full rounded-full transition-all duration-500 ease-out"
 					style={{
@@ -36,9 +37,35 @@ export function BudgetUsage({
 					}}
 				/>
 			</div>
-			<p className="text-xs text-[hsl(var(--muted-foreground))]">
+			<p className="text-xs text-[var(--muted-foreground)]">
 				{used} / {total}
 			</p>
+		</div>
+	);
+}
+
+/** Compound budget panel showing daily + monthly. */
+export function BudgetUsagePanel({
+	daily,
+	monthly,
+}: {
+	daily: { spent: string; limit: string; utilization: number };
+	monthly: { spent: string; limit: string; utilization: number };
+}): React.ReactElement {
+	return (
+		<div className="space-y-5">
+			<BudgetUsage
+				label="Daily Budget"
+				percentage={daily.utilization}
+				used={daily.spent}
+				total={daily.limit}
+			/>
+			<BudgetUsage
+				label="Monthly Budget"
+				percentage={monthly.utilization}
+				used={monthly.spent}
+				total={monthly.limit}
+			/>
 		</div>
 	);
 }
