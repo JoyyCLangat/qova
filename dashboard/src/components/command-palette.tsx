@@ -160,25 +160,25 @@ export function CommandPalette(): React.ReactElement {
             <span>General Settings</span>
           </CommandItem>
           <CommandItem
-            value="api keys tokens"
-            onSelect={() => runCommand(() => router.push("/settings"))}
+            value="api keys tokens developer"
+            onSelect={() => runCommand(() => router.push("/developers/keys"))}
           >
             <Key size={16} />
             <span>API Keys</span>
           </CommandItem>
           <CommandItem
-            value="team members"
-            onSelect={() => runCommand(() => router.push("/settings"))}
+            value="team members organization invite"
+            onSelect={() => runCommand(() => router.push("/settings/team"))}
           >
             <Users size={16} />
             <span>Team</span>
           </CommandItem>
           <CommandItem
-            value="notifications alerts"
-            onSelect={() => runCommand(() => router.push("/settings"))}
+            value="notifications alerts preferences email digest"
+            onSelect={() => runCommand(() => router.push("/settings/notifications"))}
           >
             <Bell size={16} />
-            <span>Notifications</span>
+            <span>Notification Preferences</span>
           </CommandItem>
         </CommandGroup>
 
