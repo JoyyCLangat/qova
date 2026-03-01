@@ -22,6 +22,7 @@ import {
   Key,
   Users,
   MagnifyingGlass,
+  Plugs,
 } from "@phosphor-icons/react"
 import {
   CommandDialog,
@@ -205,6 +206,13 @@ export function CommandPalette(): React.ReactElement {
           >
             <ShieldCheck size={16} />
             <span>Verify Agent</span>
+          </CommandItem>
+          <CommandItem
+            value="integrations marketplace connect plugins"
+            onSelect={() => runCommand(() => router.push("/integrations"))}
+          >
+            <Plugs size={16} />
+            <span>Integrations</span>
           </CommandItem>
         </CommandGroup>
 

@@ -10,6 +10,7 @@ import {
   Globe,
   Key,
   MagnifyingGlass,
+  Plugs,
   Robot,
   ShieldCheck,
   Wallet,
@@ -76,6 +77,11 @@ const data = {
       title: "Verify",
       url: "/verify",
       icon: ShieldCheck,
+    },
+    {
+      title: "Integrations",
+      url: "/integrations",
+      icon: Plugs,
     },
   ],
   navDevelopers: [
