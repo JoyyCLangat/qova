@@ -1,19 +1,43 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
+import type { NextRequest, NextFetchEvent } from "next/server";
 
-const isPublicRoute = createRouteMatcher([
-	"/sign-in(.*)",
-	"/sign-up(.*)",
-	"/verify(.*)",
-	"/api/webhooks(.*)",
-	"/api/badge(.*)",
-]);
-
-export default clerkMiddleware(async (auth, request) => {
-	// Only enforce auth when Clerk keys are configured
-	if (process.env.CLERK_SECRET_KEY && !isPublicRoute(request)) {
-		await auth.protect();
+/**
+ * Middleware that conditionally enables Clerk auth.
+ * When Clerk keys are not configured (e.g. fresh deployment),
+ * all routes are accessible without authentication.
+ */
+export default async function middleware(
+	request: NextRequest,
+	event: NextFetchEvent,
+): Promise<NextResponse> {
+	if (
+		!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ||
+		!process.env.CLERK_SECRET_KEY
+	) {
+		return NextResponse.next();
 	}
-});
+
+	// Dynamic import avoids Clerk crashing at module init when keys are absent
+	const { clerkMiddleware, createRouteMatcher } = await import(
+		"@clerk/nextjs/server"
+	);
+
+	const isPublicRoute = createRouteMatcher([
+		"/sign-in(.*)",
+		"/sign-up(.*)",
+		"/verify(.*)",
+		"/api/webhooks(.*)",
+		"/api/badge(.*)",
+	]);
+
+	const handler = clerkMiddleware(async (auth, req) => {
+		if (!isPublicRoute(req)) {
+			await auth.protect();
+		}
+	});
+
+	return handler(request, event) as Promise<NextResponse>;
+}
 
 export const config = {
 	matcher: [
