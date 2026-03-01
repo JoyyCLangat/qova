@@ -15,6 +15,9 @@ const routeTitles: Record<string, string> = {
   "/scores": "Scores",
   "/budgets": "Budgets",
   "/verify": "Verify",
+  "/developers/keys": "API Keys",
+  "/developers/webhooks": "Webhooks",
+  "/developers/docs": "API Documentation",
   "/settings": "Settings",
   "/onboarding": "Welcome",
 }

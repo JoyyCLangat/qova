@@ -17,6 +17,7 @@ import type * as actions_chain from "../actions/chain.js";
 import type * as actions_sync from "../actions/sync.js";
 import type * as mutations_activity from "../mutations/activity.js";
 import type * as mutations_agents from "../mutations/agents.js";
+import type * as mutations_apiKeys from "../mutations/apiKeys.js";
 import type * as mutations_scores from "../mutations/scores.js";
 import type * as mutations_seed from "../mutations/seed.js";
 import type * as mutations_stats from "../mutations/stats.js";
@@ -26,8 +27,11 @@ import type * as queries_scores from "../queries/scores.js";
 import type * as queries_stats from "../queries/stats.js";
 import type * as mutations_cre from "../mutations/cre.js";
 import type * as mutations_users from "../mutations/users.js";
+import type * as mutations_webhooks from "../mutations/webhooks.js";
+import type * as queries_apiKeys from "../queries/apiKeys.js";
 import type * as queries_cre from "../queries/cre.js";
 import type * as queries_users from "../queries/users.js";
+import type * as queries_webhooks from "../queries/webhooks.js";
 import type * as users from "../users.js";
 
 declare const fullApi: ApiFromModules<{
@@ -35,17 +39,21 @@ declare const fullApi: ApiFromModules<{
   "actions/sync": typeof actions_sync;
   "mutations/activity": typeof mutations_activity;
   "mutations/agents": typeof mutations_agents;
+  "mutations/apiKeys": typeof mutations_apiKeys;
   "mutations/cre": typeof mutations_cre;
   "mutations/scores": typeof mutations_scores;
   "mutations/seed": typeof mutations_seed;
   "mutations/stats": typeof mutations_stats;
   "mutations/users": typeof mutations_users;
+  "mutations/webhooks": typeof mutations_webhooks;
   "queries/activity": typeof queries_activity;
   "queries/agents": typeof queries_agents;
+  "queries/apiKeys": typeof queries_apiKeys;
   "queries/cre": typeof queries_cre;
   "queries/scores": typeof queries_scores;
   "queries/stats": typeof queries_stats;
   "queries/users": typeof queries_users;
+  "queries/webhooks": typeof queries_webhooks;
   "users": typeof users;
 }>;
 

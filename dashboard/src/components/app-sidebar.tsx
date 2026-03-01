@@ -5,12 +5,15 @@ import {
   ChartBar,
   ChartLine,
   ChartLineUp,
+  Code,
   Gear,
   Globe,
+  Key,
   MagnifyingGlass,
   Robot,
   ShieldCheck,
   Wallet,
+  WebhooksLogo,
   Question,
 } from "@phosphor-icons/react"
 import { LogoMark } from "@/components/brand/logo-mark"
@@ -75,6 +78,23 @@ const data = {
       icon: ShieldCheck,
     },
   ],
+  navDevelopers: [
+    {
+      title: "API Keys",
+      url: "/developers/keys",
+      icon: Key,
+    },
+    {
+      title: "Webhooks",
+      url: "/developers/webhooks",
+      icon: WebhooksLogo,
+    },
+    {
+      title: "API Docs",
+      url: "/developers/docs",
+      icon: Code,
+    },
+  ],
   navSecondary: [
     {
       title: "Search",
@@ -119,6 +139,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>): 
         <NavMain label="Platform" items={data.navPlatform} />
         <NavMain label="Analytics" items={data.navAnalytics} />
         <NavMain label="Security" items={data.navSecurity} />
+        <NavMain label="Developers" items={data.navDevelopers} />
         <SidebarSeparator className="mx-0" />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
