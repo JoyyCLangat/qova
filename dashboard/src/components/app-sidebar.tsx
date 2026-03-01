@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/sidebar"
 
 const data = {
-  navPlatform: [
+  navOperations: [
     {
       title: "Overview",
       url: "/",
@@ -49,8 +49,18 @@ const data = {
       url: "/transactions",
       icon: ArrowsLeftRight,
     },
+    {
+      title: "Budgets",
+      url: "/budgets",
+      icon: Wallet,
+    },
+    {
+      title: "Integrations",
+      url: "/integrations",
+      icon: Plugs,
+    },
   ],
-  navAnalytics: [
+  navIntelligence: [
     {
       title: "CRE Engine",
       url: "/cre",
@@ -67,21 +77,9 @@ const data = {
       icon: ChartLine,
     },
     {
-      title: "Budgets",
-      url: "/budgets",
-      icon: Wallet,
-    },
-  ],
-  navSecurity: [
-    {
       title: "Verify",
       url: "/verify",
       icon: ShieldCheck,
-    },
-    {
-      title: "Integrations",
-      url: "/integrations",
-      icon: Plugs,
     },
   ],
   navDevelopers: [
@@ -142,9 +140,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>): 
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain label="Platform" items={data.navPlatform} />
-        <NavMain label="Analytics" items={data.navAnalytics} />
-        <NavMain label="Security" items={data.navSecurity} />
+        <NavMain label="Operations" items={data.navOperations} />
+        <NavMain label="Intelligence" items={data.navIntelligence} />
         <NavMain label="Developers" items={data.navDevelopers} />
         <SidebarSeparator className="mx-0" />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
