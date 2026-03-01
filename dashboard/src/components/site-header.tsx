@@ -1,6 +1,8 @@
 "use client"
 
+import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { Bell } from "@phosphor-icons/react"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
@@ -15,6 +17,7 @@ const routeTitles: Record<string, string> = {
   "/scores": "Scores",
   "/budgets": "Budgets",
   "/verify": "Verify",
+  "/alerts": "Notifications",
   "/developers/keys": "API Keys",
   "/developers/webhooks": "Webhooks",
   "/developers/docs": "API Documentation",
@@ -70,6 +73,12 @@ export function SiteHeader(): React.ReactElement {
         <h1 className="text-base font-medium">{title}</h1>
         <div className="ml-auto flex items-center gap-2">
           <SearchTrigger />
+          <Button variant="ghost" size="sm" asChild className="size-8 p-0">
+            <Link href="/alerts">
+              <Bell className="size-4" />
+              <span className="sr-only">Notifications</span>
+            </Link>
+          </Button>
           <ThemeToggle />
         </div>
       </div>

@@ -26,10 +26,12 @@ import type * as queries_agents from "../queries/agents.js";
 import type * as queries_scores from "../queries/scores.js";
 import type * as queries_stats from "../queries/stats.js";
 import type * as mutations_cre from "../mutations/cre.js";
+import type * as mutations_notifications from "../mutations/notifications.js";
 import type * as mutations_users from "../mutations/users.js";
 import type * as mutations_webhooks from "../mutations/webhooks.js";
 import type * as queries_apiKeys from "../queries/apiKeys.js";
 import type * as queries_cre from "../queries/cre.js";
+import type * as queries_notifications from "../queries/notifications.js";
 import type * as queries_users from "../queries/users.js";
 import type * as queries_webhooks from "../queries/webhooks.js";
 import type * as users from "../users.js";
@@ -41,6 +43,7 @@ declare const fullApi: ApiFromModules<{
   "mutations/agents": typeof mutations_agents;
   "mutations/apiKeys": typeof mutations_apiKeys;
   "mutations/cre": typeof mutations_cre;
+  "mutations/notifications": typeof mutations_notifications;
   "mutations/scores": typeof mutations_scores;
   "mutations/seed": typeof mutations_seed;
   "mutations/stats": typeof mutations_stats;
@@ -50,6 +53,7 @@ declare const fullApi: ApiFromModules<{
   "queries/agents": typeof queries_agents;
   "queries/apiKeys": typeof queries_apiKeys;
   "queries/cre": typeof queries_cre;
+  "queries/notifications": typeof queries_notifications;
   "queries/scores": typeof queries_scores;
   "queries/stats": typeof queries_stats;
   "queries/users": typeof queries_users;
