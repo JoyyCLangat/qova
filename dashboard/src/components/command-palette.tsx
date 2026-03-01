@@ -3,6 +3,7 @@
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import { useTheme } from "next-themes"
+import { useQuery } from "convex/react"
 import {
   House,
   Robot,
@@ -20,6 +21,7 @@ import {
   Bell,
   Key,
   Users,
+  MagnifyingGlass,
 } from "@phosphor-icons/react"
 import {
   CommandDialog,
@@ -30,11 +32,43 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command"
+import { useConvexAvailable } from "@/components/providers/convex-provider"
+import { api } from "../../convex/_generated/api"
+import { Badge } from "@/components/ui/badge"
+
+function gradeColor(grade: string): string {
+  const g = grade.toUpperCase()
+  if (["AAA", "AA", "A"].includes(g)) return "text-score-green"
+  if (["BBB", "BB", "B"].includes(g)) return "text-score-yellow"
+  return "text-score-red"
+}
 
 export function CommandPalette(): React.ReactElement {
   const [open, setOpen] = React.useState(false)
+  const [search, setSearch] = React.useState("")
   const router = useRouter()
   const { setTheme } = useTheme()
+  const convexAvailable = useConvexAvailable()
+
+  // Debounced search term for agent queries
+  const [debouncedSearch, setDebouncedSearch] = React.useState("")
+
+  React.useEffect(() => {
+    if (search.length < 2) {
+      setDebouncedSearch("")
+      return
+    }
+    const timer = setTimeout(() => setDebouncedSearch(search), 200)
+    return (): void => clearTimeout(timer)
+  }, [search])
+
+  // Query agents when search term is long enough
+  const agentResults = useQuery(
+    api.queries.agents.search,
+    convexAvailable && debouncedSearch.length >= 2
+      ? { term: debouncedSearch }
+      : "skip",
+  )
 
   React.useEffect(() => {
     function down(e: KeyboardEvent): void {
@@ -49,22 +83,71 @@ export function CommandPalette(): React.ReactElement {
     }
   }, [])
 
+  // Reset search when dialog closes
+  React.useEffect(() => {
+    if (!open) setSearch("")
+  }, [open])
+
   const runCommand = React.useCallback((command: () => unknown) => {
     setOpen(false)
     command()
   }, [])
+
+  const agents = agentResults ?? []
 
   return (
     <CommandDialog
       open={open}
       onOpenChange={setOpen}
       title="Command Palette"
-      description="Search for pages, actions, and settings."
+      description="Search for agents, pages, actions, and settings."
       showCloseButton={false}
     >
-      <CommandInput placeholder="Search agents, pages, actions..." />
+      <CommandInput
+        placeholder="Search agents by address, pages, actions..."
+        value={search}
+        onValueChange={setSearch}
+      />
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
+
+        {/* Agent search results */}
+        {agents.length > 0 && (
+          <>
+            <CommandGroup heading="Agents">
+              {agents.slice(0, 6).map((agent) => (
+                <CommandItem
+                  key={agent._id}
+                  value={`agent ${agent.address} ${agent.addressShort} ${agent.grade}`}
+                  onSelect={() =>
+                    runCommand(() => router.push(`/agents/${agent.address}`))
+                  }
+                >
+                  <Robot size={16} />
+                  <span className="font-mono text-xs">{agent.addressShort}</span>
+                  <Badge variant="outline" className={`ml-auto text-[10px] ${gradeColor(agent.grade)}`}>
+                    {agent.grade}
+                  </Badge>
+                  <span className="font-mono text-xs text-muted-foreground">
+                    {agent.score}
+                  </span>
+                </CommandItem>
+              ))}
+              {agents.length > 6 && (
+                <CommandItem
+                  value="view all agent results"
+                  onSelect={() => runCommand(() => router.push("/agents"))}
+                >
+                  <MagnifyingGlass size={16} />
+                  <span className="text-muted-foreground">
+                    View all {agents.length} results
+                  </span>
+                </CommandItem>
+              )}
+            </CommandGroup>
+            <CommandSeparator />
+          </>
+        )}
 
         <CommandGroup heading="Pages">
           <CommandItem
