@@ -9,6 +9,7 @@ import {
   ArrowsLeftRight,
   ChartLine,
   ChartLineUp,
+  Globe,
   Wallet,
   ShieldCheck,
   Gear,
@@ -93,6 +94,13 @@ export function CommandPalette(): React.ReactElement {
           >
             <ChartLineUp size={16} />
             <span>CRE Engine</span>
+          </CommandItem>
+          <CommandItem
+            value="ecosystem intelligence network macro overview"
+            onSelect={() => runCommand(() => router.push("/ecosystem"))}
+          >
+            <Globe size={16} />
+            <span>Ecosystem Intelligence</span>
           </CommandItem>
           <CommandItem
             value="scores leaderboard reputation grade"

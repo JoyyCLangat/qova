@@ -6,6 +6,7 @@ import {
   ChartLine,
   ChartLineUp,
   Gear,
+  Globe,
   MagnifyingGlass,
   Robot,
   ShieldCheck,
@@ -50,6 +51,11 @@ const data = {
       title: "CRE Engine",
       url: "/cre",
       icon: ChartLineUp,
+    },
+    {
+      title: "Ecosystem",
+      url: "/ecosystem",
+      icon: Globe,
     },
     {
       title: "Scores",
