@@ -7,6 +7,7 @@ import {
   House,
   Robot,
   ArrowsLeftRight,
+  ChartLine,
   ChartLineUp,
   Wallet,
   ShieldCheck,
@@ -87,10 +88,17 @@ export function CommandPalette(): React.ReactElement {
             <span>Transactions</span>
           </CommandItem>
           <CommandItem
+            value="cre engine scoring workflows chainlink"
+            onSelect={() => runCommand(() => router.push("/cre"))}
+          >
+            <ChartLineUp size={16} />
+            <span>CRE Engine</span>
+          </CommandItem>
+          <CommandItem
             value="scores leaderboard reputation grade"
             onSelect={() => runCommand(() => router.push("/scores"))}
           >
-            <ChartLineUp size={16} />
+            <ChartLine size={16} />
             <span>Scores</span>
           </CommandItem>
           <CommandItem

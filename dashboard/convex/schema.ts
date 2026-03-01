@@ -158,6 +158,40 @@ export default defineSchema({
     .index("by_action", ["action"])
     .index("by_timestamp", ["timestamp"]),
 
+  // ─── CRE Scoring Engine ─────────────────────────────────────────
+  creWorkflows: defineTable({
+    workflowId: v.string(), // "payment-volume" | "longevity" | "sanctions" | "volatility"
+    name: v.string(),
+    description: v.string(),
+    weight: v.number(), // 0-1 contribution to composite score
+    status: v.string(), // "active" | "paused" | "error"
+    lastRunAt: v.optional(v.number()),
+    avgDurationMs: v.optional(v.number()),
+    totalRuns: v.number(),
+    successRate: v.number(), // 0-100
+    icon: v.string(), // Phosphor icon name
+    createdAt: v.number(),
+  })
+    .index("by_workflow_id", ["workflowId"])
+    .index("by_status", ["status"]),
+
+  creExecutions: defineTable({
+    workflowId: v.string(),
+    agentAddress: v.optional(v.string()),
+    status: v.string(), // "running" | "completed" | "failed"
+    inputScore: v.optional(v.number()),
+    outputScore: v.optional(v.number()),
+    durationMs: v.optional(v.number()),
+    error: v.optional(v.string()),
+    metadata: v.optional(v.string()), // JSON stringified
+    startedAt: v.number(),
+    completedAt: v.optional(v.number()),
+  })
+    .index("by_workflow", ["workflowId"])
+    .index("by_workflow_status", ["workflowId", "status"])
+    .index("by_agent", ["agentAddress"])
+    .index("by_started", ["startedAt"]),
+
   // ─── Integrations ────────────────────────────────────────────────
   integrations: defineTable({
     userId: v.string(),

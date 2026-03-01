@@ -113,6 +113,97 @@ export const seedDemoData = mutation({
 		await ctx.db.insert("systemStats", { key: "registeredCount", value: registered, updatedAt: now });
 		await ctx.db.insert("systemStats", { key: "topGrade", value: "AAA", updatedAt: now });
 		await ctx.db.insert("systemStats", { key: "lastSyncedAt", value: new Date(now).toISOString(), updatedAt: now });
+
+		// ── CRE Workflows ──────────────────────────────────────────────
+		const existingWorkflows = await ctx.db.query("creWorkflows").collect();
+		for (const w of existingWorkflows) await ctx.db.delete(w._id);
+
+		const existingExecs = await ctx.db.query("creExecutions").collect();
+		for (const e of existingExecs) await ctx.db.delete(e._id);
+
+		const HOUR = 3600000;
+
+		const workflows = [
+			{
+				workflowId: "payment-volume",
+				name: "Payment Volume Analysis",
+				description: "Analyzes transaction volume, frequency, and consistency over rolling windows.",
+				weight: 0.35,
+				status: "active" as const,
+				lastRunAt: now - HOUR * 2,
+				avgDurationMs: 4200,
+				totalRuns: 1847,
+				successRate: 99.2,
+				icon: "CurrencyCircleDollar",
+				createdAt: now - DAY * 90,
+			},
+			{
+				workflowId: "longevity",
+				name: "Agent Longevity Score",
+				description: "Measures on-chain account age, registration date, and continuous activity periods.",
+				weight: 0.25,
+				status: "active" as const,
+				lastRunAt: now - HOUR * 1,
+				avgDurationMs: 2800,
+				totalRuns: 1847,
+				successRate: 99.8,
+				icon: "Timer",
+				createdAt: now - DAY * 90,
+			},
+			{
+				workflowId: "sanctions",
+				name: "Sanctions & Compliance",
+				description: "Cross-references agent addresses against OFAC, EU, and UN sanctions lists.",
+				weight: 0.25,
+				status: "active" as const,
+				lastRunAt: now - HOUR * 3,
+				avgDurationMs: 6100,
+				totalRuns: 1846,
+				successRate: 98.5,
+				icon: "ShieldCheck",
+				createdAt: now - DAY * 90,
+			},
+			{
+				workflowId: "volatility",
+				name: "Score Volatility Index",
+				description: "Computes standard deviation of score changes over 30/60/90-day windows.",
+				weight: 0.15,
+				status: "active" as const,
+				lastRunAt: now - HOUR * 4,
+				avgDurationMs: 3400,
+				totalRuns: 1845,
+				successRate: 99.5,
+				icon: "ChartLineUp",
+				createdAt: now - DAY * 90,
+			},
+		];
+
+		for (const w of workflows) {
+			await ctx.db.insert("creWorkflows", w);
+		}
+
+		const creStatuses = ["completed", "completed", "completed", "completed", "failed"];
+		for (const w of workflows) {
+			for (let i = 0; i < 25; i++) {
+				const startedAt = now - Math.floor(Math.random() * 7 * DAY);
+				const st = creStatuses[Math.floor(Math.random() * creStatuses.length)];
+				const dur = st === "completed"
+					? (w.avgDurationMs ?? 3000) + Math.floor(Math.random() * 2000) - 1000
+					: Math.floor(Math.random() * 1000);
+				const agent = AGENTS[Math.floor(Math.random() * AGENTS.length)];
+				await ctx.db.insert("creExecutions", {
+					workflowId: w.workflowId,
+					agentAddress: agent.address,
+					status: st,
+					inputScore: 500 + Math.floor(Math.random() * 500),
+					outputScore: st === "completed" ? 500 + Math.floor(Math.random() * 500) : undefined,
+					durationMs: st === "completed" ? dur : undefined,
+					error: st === "failed" ? "Upstream data source timeout" : undefined,
+					startedAt,
+					completedAt: st === "completed" ? startedAt + dur : undefined,
+				});
+			}
+		}
 	},
 });
 

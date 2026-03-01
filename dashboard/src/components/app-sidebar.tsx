@@ -4,6 +4,7 @@ import {
   ArrowsLeftRight,
   ChartBar,
   ChartLine,
+  ChartLineUp,
   Gear,
   MagnifyingGlass,
   Robot,
@@ -45,6 +46,11 @@ const data = {
     },
   ],
   navAnalytics: [
+    {
+      title: "CRE Engine",
+      url: "/cre",
+      icon: ChartLineUp,
+    },
     {
       title: "Scores",
       url: "/scores",

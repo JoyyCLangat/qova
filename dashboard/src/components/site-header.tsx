@@ -10,6 +10,7 @@ const routeTitles: Record<string, string> = {
   "/": "Overview",
   "/agents": "Agents",
   "/transactions": "Transactions",
+  "/cre": "CRE Engine",
   "/scores": "Scores",
   "/budgets": "Budgets",
   "/verify": "Verify",
@@ -50,7 +51,8 @@ export function SiteHeader(): React.ReactElement {
 
   const title =
     routeTitles[pathname] ??
-    (pathname.startsWith("/agents/") ? "Agent Detail" : "Qova")
+    (pathname.startsWith("/agents/") ? "Agent Detail" :
+     pathname.startsWith("/cre/") ? "Workflow Detail" : "Qova")
 
   return (
     <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">

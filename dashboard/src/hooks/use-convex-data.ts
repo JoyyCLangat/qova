@@ -109,6 +109,91 @@ export function useLeaderboard(limit?: number): Array<{
 	return result ?? [];
 }
 
+/** All CRE workflows. */
+export function useCreWorkflows(): Array<{
+	_id: string;
+	workflowId: string;
+	name: string;
+	description: string;
+	weight: number;
+	status: string;
+	lastRunAt?: number;
+	avgDurationMs?: number;
+	totalRuns: number;
+	successRate: number;
+	icon: string;
+	createdAt: number;
+}> {
+	const available = useConvexAvailable();
+	const result = useQuery(api.queries.cre.listWorkflows, available ? {} : "skip");
+	return result ?? [];
+}
+
+/** Single CRE workflow by ID. */
+export function useCreWorkflow(workflowId: string): {
+	_id: string;
+	workflowId: string;
+	name: string;
+	description: string;
+	weight: number;
+	status: string;
+	lastRunAt?: number;
+	avgDurationMs?: number;
+	totalRuns: number;
+	successRate: number;
+	icon: string;
+	createdAt: number;
+} | null {
+	const available = useConvexAvailable();
+	const result = useQuery(
+		api.queries.cre.getWorkflow,
+		available ? { workflowId } : "skip",
+	);
+	return result ?? null;
+}
+
+/** CRE executions for a workflow. */
+export function useCreExecutions(workflowId: string, limit?: number): Array<{
+	_id: string;
+	workflowId: string;
+	agentAddress?: string;
+	status: string;
+	inputScore?: number;
+	outputScore?: number;
+	durationMs?: number;
+	error?: string;
+	startedAt: number;
+	completedAt?: number;
+}> {
+	const available = useConvexAvailable();
+	const result = useQuery(
+		api.queries.cre.getExecutions,
+		available ? { workflowId, limit } : "skip",
+	);
+	return result ?? [];
+}
+
+/** Recent CRE executions across all workflows. */
+export function useRecentCreExecutions(limit?: number): Array<{
+	_id: string;
+	workflowId: string;
+	agentAddress?: string;
+	status: string;
+	inputScore?: number;
+	outputScore?: number;
+	durationMs?: number;
+	error?: string;
+	startedAt: number;
+	completedAt?: number;
+}> {
+	const available = useConvexAvailable();
+	const result = useQuery(
+		api.queries.cre.getRecentExecutions,
+		available ? { limit } : "skip",
+	);
+	return result ?? [];
+}
+
 /** Single agent by address. */
 export function useAgentByAddress(address: string): {
 	_id: string;
