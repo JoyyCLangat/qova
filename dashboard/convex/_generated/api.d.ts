@@ -8,33 +8,34 @@
  * @module
  */
 
-import type {
-  ApiFromModules,
-  FilterApi,
-  FunctionReference,
-} from "convex/server";
 import type * as actions_chain from "../actions/chain.js";
 import type * as actions_sync from "../actions/sync.js";
 import type * as mutations_activity from "../mutations/activity.js";
 import type * as mutations_agents from "../mutations/agents.js";
 import type * as mutations_apiKeys from "../mutations/apiKeys.js";
+import type * as mutations_cre from "../mutations/cre.js";
+import type * as mutations_notifications from "../mutations/notifications.js";
 import type * as mutations_scores from "../mutations/scores.js";
 import type * as mutations_seed from "../mutations/seed.js";
 import type * as mutations_stats from "../mutations/stats.js";
-import type * as queries_activity from "../queries/activity.js";
-import type * as queries_agents from "../queries/agents.js";
-import type * as queries_scores from "../queries/scores.js";
-import type * as queries_stats from "../queries/stats.js";
-import type * as mutations_cre from "../mutations/cre.js";
-import type * as mutations_notifications from "../mutations/notifications.js";
 import type * as mutations_users from "../mutations/users.js";
 import type * as mutations_webhooks from "../mutations/webhooks.js";
+import type * as queries_activity from "../queries/activity.js";
+import type * as queries_agents from "../queries/agents.js";
 import type * as queries_apiKeys from "../queries/apiKeys.js";
 import type * as queries_cre from "../queries/cre.js";
 import type * as queries_notifications from "../queries/notifications.js";
+import type * as queries_scores from "../queries/scores.js";
+import type * as queries_stats from "../queries/stats.js";
 import type * as queries_users from "../queries/users.js";
 import type * as queries_webhooks from "../queries/webhooks.js";
 import type * as users from "../users.js";
+
+import type {
+  ApiFromModules,
+  FilterApi,
+  FunctionReference,
+} from "convex/server";
 
 declare const fullApi: ApiFromModules<{
   "actions/chain": typeof actions_chain;
@@ -58,14 +59,33 @@ declare const fullApi: ApiFromModules<{
   "queries/stats": typeof queries_stats;
   "queries/users": typeof queries_users;
   "queries/webhooks": typeof queries_webhooks;
-  "users": typeof users;
+  users: typeof users;
 }>;
 
+/**
+ * A utility for referencing Convex functions in your app's public API.
+ *
+ * Usage:
+ * ```js
+ * const myFunctionReference = api.myModule.myFunction;
+ * ```
+ */
 export declare const api: FilterApi<
   typeof fullApi,
   FunctionReference<any, "public">
 >;
+
+/**
+ * A utility for referencing Convex functions in your app's internal API.
+ *
+ * Usage:
+ * ```js
+ * const myFunctionReference = internal.myModule.myFunction;
+ * ```
+ */
 export declare const internal: FilterApi<
   typeof fullApi,
   FunctionReference<any, "internal">
 >;
+
+export declare const components: {};
