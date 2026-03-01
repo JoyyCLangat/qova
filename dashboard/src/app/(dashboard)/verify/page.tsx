@@ -1,7 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import {
+	ArrowRight,
 	CheckCircle,
+	Code,
 	MagnifyingGlass,
 	ShieldCheck,
 	XCircle,
@@ -185,6 +188,30 @@ export default function VerifyPage(): React.ReactElement {
 									{new Date(result.timestamp).toLocaleString()}
 								</span>
 							</DetailRow>
+						</div>
+
+						{/* Actions */}
+						<div className="mt-6 flex flex-col gap-2 sm:flex-row">
+							<Link
+								href={`/verify/report/${result.agent}`}
+								className="inline-flex items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium hover:bg-accent transition-colors"
+							>
+								<ArrowRight size={14} />
+								View Full Report
+							</Link>
+							<button
+								type="button"
+								onClick={() => {
+									const badgeUrl = `${window.location.origin}/api/badge/${result.agent}`
+									navigator.clipboard.writeText(
+										`![Qova Score](${badgeUrl})`
+									)
+								}}
+								className="inline-flex items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-accent transition-colors cursor-pointer"
+							>
+								<Code size={14} />
+								Copy Badge Embed
+							</button>
 						</div>
 					</div>
 				)}
