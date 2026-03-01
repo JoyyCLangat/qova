@@ -1,14 +1,13 @@
 "use client"
 
 import {
-  CreditCard,
-  DotsThreeVertical,
+  CaretUpDown,
   Gear,
   SignOut,
-  Bell,
+  User,
 } from "@phosphor-icons/react"
 import { useClerk, useUser } from "@clerk/nextjs"
-import Link from "next/link"
+import { useRouter } from "next/navigation"
 import {
   Avatar,
   AvatarFallback,
@@ -46,6 +45,7 @@ function UserMenuShell({
   onSignOut: () => void
 }): React.ReactElement {
   const { isMobile } = useSidebar()
+  const router = useRouter()
 
   const initials = user.name
     .split(" ")
@@ -63,9 +63,9 @@ function UserMenuShell({
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <Avatar className="h-8 w-8 rounded-lg grayscale">
+              <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
+                <AvatarFallback className="rounded-lg text-xs">{initials}</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{user.name}</span>
@@ -73,7 +73,7 @@ function UserMenuShell({
                   {user.email}
                 </span>
               </div>
-              <DotsThreeVertical className="ml-auto size-4" weight="bold" />
+              <CaretUpDown className="ml-auto size-4" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -86,10 +86,10 @@ function UserMenuShell({
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
+                  <AvatarFallback className="rounded-lg text-xs">{initials}</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{user.name}</span>
+                  <span className="truncate font-semibold">{user.name}</span>
                   <span className="text-muted-foreground truncate text-xs">
                     {user.email}
                   </span>
@@ -98,25 +98,22 @@ function UserMenuShell({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem asChild>
-                <Link href="/settings">
-                  <Gear />
-                  Settings
-                </Link>
+              <DropdownMenuItem onClick={() => router.push("/settings")}>
+                <User />
+                Profile
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CreditCard />
-                Billing
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Bell />
-                Notifications
+              <DropdownMenuItem onClick={() => router.push("/settings")}>
+                <Gear />
+                Settings
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={onSignOut}>
+            <DropdownMenuItem
+              onClick={onSignOut}
+              className="text-destructive focus:text-destructive"
+            >
               <SignOut />
-              Log out
+              Sign Out
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -128,7 +125,8 @@ function UserMenuShell({
 /** Renders when Clerk is configured and ClerkProvider is present */
 function ClerkNavUser(): React.ReactElement {
   const { user } = useUser()
-  const clerk = useClerk()
+  const { signOut } = useClerk()
+  const router = useRouter()
 
   const userInfo: UserInfo = {
     name: user?.fullName ?? "Qova User",
@@ -139,7 +137,7 @@ function ClerkNavUser(): React.ReactElement {
   return (
     <UserMenuShell
       user={userInfo}
-      onSignOut={() => clerk.signOut()}
+      onSignOut={() => signOut(() => router.push("/sign-in"))}
     />
   )
 }
@@ -147,12 +145,15 @@ function ClerkNavUser(): React.ReactElement {
 export function NavUser({
   user,
 }: {
-  user: UserInfo
+  user?: UserInfo
 }): React.ReactElement {
-  // When Clerk is configured, use Clerk hooks for real user data
   if (isClerkConfigured) {
     return <ClerkNavUser />
   }
-  // Fallback to prop-based user data
-  return <UserMenuShell user={user} onSignOut={() => {}} />
+  const fallback: UserInfo = user ?? {
+    name: "Qova User",
+    email: "user@qova.cc",
+    avatar: "",
+  }
+  return <UserMenuShell user={fallback} onSignOut={() => {}} />
 }

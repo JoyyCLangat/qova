@@ -5,23 +5,18 @@ import {
 	MagnifyingGlass,
 	Plus,
 	Robot,
-	SpinnerGap,
-	X,
 } from "@phosphor-icons/react";
 import type { ColumnDef } from "@tanstack/react-table";
-import { useMutation } from "convex/react";
 import Link from "next/link";
-import { useCallback, useMemo, useRef, useState } from "react";
-import { api } from "../../../../convex/_generated/api";
+import { useEffect, useMemo, useState } from "react";
 import { DataTable } from "@/components/data/data-table";
 import { EmptyState } from "@/components/data/empty-state";
 import { ScoreBadge } from "@/components/scores/score-badge";
 import { StatusBadge } from "@/components/data/status-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { RegisterAgentDialog } from "@/components/register-agent-dialog";
 import { useAgentList } from "@/hooks/use-convex-data";
-import { useConvexAvailable } from "@/components/providers/convex-provider";
-import { cn } from "@/lib/utils";
 
 function timeAgo(iso: string): string {
 	const diff = Date.now() - new Date(iso).getTime();
@@ -47,130 +42,6 @@ interface AgentRow {
 	updateCount: number;
 	lastUpdated: string;
 	explorerUrl: string;
-}
-
-/* ------------------------------------------------------------------ */
-/*  Register Agent Dialog                                              */
-/* ------------------------------------------------------------------ */
-
-function RegisterDialog({
-	open,
-	onClose,
-	onSuccess,
-}: {
-	open: boolean;
-	onClose: () => void;
-	onSuccess: () => void;
-}): React.ReactElement | null {
-	const available = useConvexAvailable();
-	const upsertAgent = useMutation(api.mutations.agents.upsertAgent);
-	const [address, setAddress] = useState("");
-	const [submitting, setSubmitting] = useState(false);
-	const [error, setError] = useState<string | null>(null);
-	const inputRef = useRef<HTMLInputElement>(null);
-
-	const isValidAddress = /^0x[a-fA-F0-9]{40}$/.test(address);
-
-	const handleSubmit = useCallback(
-		async (e: React.FormEvent): Promise<void> => {
-			e.preventDefault();
-			if (!isValidAddress) return;
-
-			if (!available) {
-				setError("Database not configured. Set NEXT_PUBLIC_CONVEX_URL to enable registration.");
-				return;
-			}
-
-			setSubmitting(true);
-			setError(null);
-
-			try {
-				await upsertAgent({
-					address,
-					score: 0,
-					isRegistered: true,
-				});
-
-				setAddress("");
-				onSuccess();
-				onClose();
-			} catch (err) {
-				setError(err instanceof Error ? err.message : "Registration failed");
-			} finally {
-				setSubmitting(false);
-			}
-		},
-		[address, isValidAddress, available, upsertAgent, onClose, onSuccess],
-	);
-
-	if (!open) return null;
-
-	return (
-		<div className="fixed inset-0 z-50 flex items-center justify-center">
-			<div
-				className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-				onClick={onClose}
-				onKeyDown={(e) => {
-					if (e.key === "Escape") onClose();
-				}}
-			/>
-			<div className="relative z-10 w-full max-w-md rounded-lg border bg-card p-6">
-				<div className="mb-4 flex items-center justify-between">
-					<h2 className="font-heading text-lg font-semibold">Register Agent</h2>
-					<button
-						type="button"
-						onClick={onClose}
-						className="rounded-md p-1 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-						aria-label="Close dialog"
-					>
-						<X size={18} />
-					</button>
-				</div>
-
-				<form onSubmit={handleSubmit}>
-					<label htmlFor="agent-address" className="mb-2 block text-sm text-muted-foreground">
-						Agent Address
-					</label>
-					<input
-						ref={inputRef}
-						id="agent-address"
-						type="text"
-						value={address}
-						onChange={(e) => setAddress(e.target.value)}
-						placeholder="0x..."
-						autoComplete="off"
-						spellCheck={false}
-						className={cn(
-							"w-full rounded-md border bg-background px-3 py-2",
-							"font-mono text-sm",
-							"placeholder:text-muted-foreground",
-							"focus:outline-none focus:ring-2 focus:ring-ring",
-							address.length > 0 && !isValidAddress ? "border-destructive" : "border-border",
-						)}
-					/>
-					{address.length > 0 && !isValidAddress && (
-						<p className="mt-1 text-xs text-destructive">
-							Enter a valid Ethereum address (0x + 40 hex characters)
-						</p>
-					)}
-					{error && <p className="mt-2 text-xs text-destructive">{error}</p>}
-					<div className="mt-5 flex items-center justify-end gap-3">
-						<Button type="button" variant="outline" size="sm" onClick={onClose}>
-							Cancel
-						</Button>
-						<Button
-							type="submit"
-							size="sm"
-							disabled={!isValidAddress || submitting}
-						>
-							{submitting && <SpinnerGap size={14} className="animate-spin" />}
-							Register
-						</Button>
-					</div>
-				</form>
-			</div>
-		</div>
-	);
 }
 
 /* ------------------------------------------------------------------ */
@@ -251,6 +122,17 @@ export default function AgentsPage(): React.ReactElement {
 	const [search, setSearch] = useState("");
 	const [registerOpen, setRegisterOpen] = useState(false);
 
+	// Listen for command palette "Register New Agent" event
+	useEffect(() => {
+		function handler(): void {
+			setRegisterOpen(true);
+		}
+		window.addEventListener("qova:register-agent", handler);
+		return (): void => {
+			window.removeEventListener("qova:register-agent", handler);
+		};
+	}, []);
+
 	const filtered: AgentRow[] = useMemo(() => {
 		const rows: AgentRow[] = agents.map((a) => ({
 			address: a.address,
@@ -298,10 +180,15 @@ export default function AgentsPage(): React.ReactElement {
 							className="w-56 rounded-md border bg-background pl-8 pr-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
 						/>
 					</div>
-					<Button onClick={() => setRegisterOpen(true)}>
-						<Plus size={14} weight="bold" />
-						Register Agent
-					</Button>
+					<RegisterAgentDialog
+						open={registerOpen}
+						onOpenChange={setRegisterOpen}
+					>
+						<Button>
+							<Plus size={14} weight="bold" />
+							Register Agent
+						</Button>
+					</RegisterAgentDialog>
 				</div>
 			</div>
 
@@ -319,15 +206,16 @@ export default function AgentsPage(): React.ReactElement {
 								? "Try adjusting your search query."
 								: "Register your first agent to get started with trust scoring."
 						}
-						action={!search ? { label: "Register Agent", onClick: () => setRegisterOpen(true) } : undefined}
+						action={
+							!search
+								? {
+										label: "Register Agent",
+										onClick: () => setRegisterOpen(true),
+									}
+								: undefined
+						}
 					/>
 				}
-			/>
-
-			<RegisterDialog
-				open={registerOpen}
-				onClose={() => setRegisterOpen(false)}
-				onSuccess={() => {}}
 			/>
 		</div>
 	);

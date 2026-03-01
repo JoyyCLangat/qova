@@ -7,24 +7,28 @@ import type { IconProps } from "@phosphor-icons/react"
 import {
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 
 export function NavMain({
+  label,
   items,
 }: {
+  label: string
   items: {
     title: string
     url: string
     icon?: ComponentType<IconProps>
   }[]
-}) {
+}): React.ReactElement {
   const pathname = usePathname()
 
   return (
     <SidebarGroup>
+      <SidebarGroupLabel>{label}</SidebarGroupLabel>
       <SidebarGroupContent>
         <SidebarMenu>
           {items.map((item) => {

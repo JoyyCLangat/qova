@@ -9,6 +9,7 @@ import {
   Robot,
   ShieldCheck,
   Wallet,
+  Question,
 } from "@phosphor-icons/react"
 import { LogoMark } from "@/components/brand/logo-mark"
 import { NavMain } from "@/components/nav-main"
@@ -22,15 +23,11 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarSeparator,
 } from "@/components/ui/sidebar"
 
 const data = {
-  user: {
-    name: "Qova User",
-    email: "user@qova.cc",
-    avatar: "",
-  },
-  navMain: [
+  navPlatform: [
     {
       title: "Overview",
       url: "/",
@@ -46,6 +43,8 @@ const data = {
       url: "/transactions",
       icon: ArrowsLeftRight,
     },
+  ],
+  navAnalytics: [
     {
       title: "Scores",
       url: "/scores",
@@ -56,6 +55,8 @@ const data = {
       url: "/budgets",
       icon: Wallet,
     },
+  ],
+  navSecurity: [
     {
       title: "Verify",
       url: "/verify",
@@ -64,19 +65,24 @@ const data = {
   ],
   navSecondary: [
     {
+      title: "Search",
+      url: "#search",
+      icon: MagnifyingGlass,
+    },
+    {
       title: "Settings",
       url: "/settings",
       icon: Gear,
     },
     {
-      title: "Search",
-      url: "#",
-      icon: MagnifyingGlass,
+      title: "Help",
+      url: "https://docs.qova.cc",
+      icon: Question,
     },
   ],
 }
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>): React.ReactElement {
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -88,18 +94,24 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             >
               <a href="/">
                 <LogoMark className="!h-5 !w-auto" />
-                <span className="text-base font-semibold">Qova</span>
+                <div className="flex flex-col gap-0 leading-none">
+                  <span className="text-sm font-semibold tracking-tight">Qova</span>
+                  <span className="text-[10px] text-muted-foreground">Trust Infrastructure</span>
+                </div>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain label="Platform" items={data.navPlatform} />
+        <NavMain label="Analytics" items={data.navAnalytics} />
+        <NavMain label="Security" items={data.navSecurity} />
+        <SidebarSeparator className="mx-0" />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser />
       </SidebarFooter>
     </Sidebar>
   )

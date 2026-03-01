@@ -73,6 +73,13 @@ export function Providers({
 						colorBackground: "#09090b",
 						colorInputBackground: "#18181b",
 						colorInputText: "#fafafa",
+						borderRadius: "0.5rem",
+					},
+					elements: {
+						card: "shadow-none border border-border",
+						socialButtonsBlockButton: "shadow-none border border-border",
+						formFieldInput: "shadow-none border border-border",
+						footer: "hidden",
 					},
 				}}
 				signInUrl="/sign-in"

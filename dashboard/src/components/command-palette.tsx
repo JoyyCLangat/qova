@@ -1,21 +1,24 @@
 "use client"
 
-import {
-  ArrowsLeftRight,
-  ChartBar,
-  ChartLine,
-  Gear,
-  MagnifyingGlass,
-  Robot,
-  ShieldCheck,
-  Wallet,
-  Plus,
-  Moon,
-  Sun,
-} from "@phosphor-icons/react"
+import * as React from "react"
 import { useRouter } from "next/navigation"
-import { useCallback, useEffect, useState } from "react"
 import { useTheme } from "next-themes"
+import {
+  House,
+  Robot,
+  ArrowsLeftRight,
+  ChartLineUp,
+  Wallet,
+  ShieldCheck,
+  Gear,
+  Plus,
+  Sun,
+  Moon,
+  Desktop,
+  Bell,
+  Key,
+  Users,
+} from "@phosphor-icons/react"
 import {
   CommandDialog,
   CommandEmpty,
@@ -24,79 +27,30 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-  CommandShortcut,
 } from "@/components/ui/command"
 
-const navigationItems = [
-  {
-    label: "Overview",
-    icon: ChartBar,
-    href: "/",
-    keywords: ["home", "dashboard"],
-  },
-  {
-    label: "Agents",
-    icon: Robot,
-    href: "/agents",
-    keywords: ["registry", "list"],
-  },
-  {
-    label: "Transactions",
-    icon: ArrowsLeftRight,
-    href: "/transactions",
-    keywords: ["tx", "activity"],
-  },
-  {
-    label: "Scores",
-    icon: ChartLine,
-    href: "/scores",
-    keywords: ["leaderboard", "reputation", "grade"],
-  },
-  {
-    label: "Budgets",
-    icon: Wallet,
-    href: "/budgets",
-    keywords: ["limits", "spending"],
-  },
-  {
-    label: "Verify",
-    icon: ShieldCheck,
-    href: "/verify",
-    keywords: ["check", "validate"],
-  },
-  {
-    label: "Settings",
-    icon: Gear,
-    href: "/settings",
-    keywords: ["config", "preferences"],
-  },
-]
-
 export function CommandPalette(): React.ReactElement {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = React.useState(false)
   const router = useRouter()
-  const { setTheme, theme } = useTheme()
+  const { setTheme } = useTheme()
 
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent): void {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+  React.useEffect(() => {
+    function down(e: KeyboardEvent): void {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault()
         setOpen((prev) => !prev)
       }
     }
-    document.addEventListener("keydown", handleKeyDown)
+    document.addEventListener("keydown", down)
     return (): void => {
-      document.removeEventListener("keydown", handleKeyDown)
+      document.removeEventListener("keydown", down)
     }
   }, [])
 
-  const runCommand = useCallback(
-    (command: () => void) => {
-      setOpen(false)
-      command()
-    },
-    [],
-  )
+  const runCommand = React.useCallback((command: () => unknown) => {
+    setOpen(false)
+    command()
+  }, [])
 
   return (
     <CommandDialog
@@ -106,46 +60,109 @@ export function CommandPalette(): React.ReactElement {
       description="Search for pages, actions, and settings."
       showCloseButton={false}
     >
-      <CommandInput placeholder="Type a command or search..." />
+      <CommandInput placeholder="Search agents, pages, actions..." />
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
 
-        <CommandGroup heading="Navigation">
-          {navigationItems.map((item) => (
-            <CommandItem
-              key={item.href}
-              value={`${item.label} ${item.keywords.join(" ")}`}
-              onSelect={() => runCommand(() => router.push(item.href))}
-            >
-              <item.icon size={16} />
-              <span>{item.label}</span>
-            </CommandItem>
-          ))}
-        </CommandGroup>
-
-        <CommandSeparator />
-
-        <CommandGroup heading="Actions">
+        <CommandGroup heading="Pages">
           <CommandItem
-            value="register agent new"
-            onSelect={() => runCommand(() => router.push("/agents"))}
+            value="overview home dashboard"
+            onSelect={() => runCommand(() => router.push("/"))}
           >
-            <Plus size={16} />
-            <span>Register New Agent</span>
+            <House size={16} />
+            <span>Overview</span>
           </CommandItem>
           <CommandItem
-            value="verify agent check"
+            value="agents registry list"
+            onSelect={() => runCommand(() => router.push("/agents"))}
+          >
+            <Robot size={16} />
+            <span>Agents</span>
+          </CommandItem>
+          <CommandItem
+            value="transactions tx activity"
+            onSelect={() => runCommand(() => router.push("/transactions"))}
+          >
+            <ArrowsLeftRight size={16} />
+            <span>Transactions</span>
+          </CommandItem>
+          <CommandItem
+            value="scores leaderboard reputation grade"
+            onSelect={() => runCommand(() => router.push("/scores"))}
+          >
+            <ChartLineUp size={16} />
+            <span>Scores</span>
+          </CommandItem>
+          <CommandItem
+            value="budgets limits spending"
+            onSelect={() => runCommand(() => router.push("/budgets"))}
+          >
+            <Wallet size={16} />
+            <span>Budgets</span>
+          </CommandItem>
+          <CommandItem
+            value="verify agent check validate"
             onSelect={() => runCommand(() => router.push("/verify"))}
           >
             <ShieldCheck size={16} />
             <span>Verify Agent</span>
           </CommandItem>
+        </CommandGroup>
+
+        <CommandSeparator />
+
+        <CommandGroup heading="Quick Actions">
           <CommandItem
-            value="search lookup find"
-            onSelect={() => runCommand(() => router.push("/scores"))}
+            value="register new agent create"
+            onSelect={() =>
+              runCommand(() => {
+                window.dispatchEvent(new CustomEvent("qova:register-agent"))
+                router.push("/agents")
+              })
+            }
           >
-            <MagnifyingGlass size={16} />
-            <span>Score Lookup</span>
+            <Plus size={16} />
+            <span>Register New Agent</span>
+          </CommandItem>
+          <CommandItem
+            value="run verification check"
+            onSelect={() => runCommand(() => router.push("/verify"))}
+          >
+            <ShieldCheck size={16} />
+            <span>Run Verification</span>
+          </CommandItem>
+        </CommandGroup>
+
+        <CommandSeparator />
+
+        <CommandGroup heading="Settings">
+          <CommandItem
+            value="general settings config preferences"
+            onSelect={() => runCommand(() => router.push("/settings"))}
+          >
+            <Gear size={16} />
+            <span>General Settings</span>
+          </CommandItem>
+          <CommandItem
+            value="api keys tokens"
+            onSelect={() => runCommand(() => router.push("/settings"))}
+          >
+            <Key size={16} />
+            <span>API Keys</span>
+          </CommandItem>
+          <CommandItem
+            value="team members"
+            onSelect={() => runCommand(() => router.push("/settings"))}
+          >
+            <Users size={16} />
+            <span>Team</span>
+          </CommandItem>
+          <CommandItem
+            value="notifications alerts"
+            onSelect={() => runCommand(() => router.push("/settings"))}
+          >
+            <Bell size={16} />
+            <span>Notifications</span>
           </CommandItem>
         </CommandGroup>
 
@@ -153,24 +170,25 @@ export function CommandPalette(): React.ReactElement {
 
         <CommandGroup heading="Theme">
           <CommandItem
-            value="dark mode theme"
-            onSelect={() => runCommand(() => setTheme("dark"))}
-          >
-            <Moon size={16} />
-            <span>Dark Mode</span>
-            {theme === "dark" && (
-              <CommandShortcut>Active</CommandShortcut>
-            )}
-          </CommandItem>
-          <CommandItem
             value="light mode theme"
             onSelect={() => runCommand(() => setTheme("light"))}
           >
             <Sun size={16} />
             <span>Light Mode</span>
-            {theme === "light" && (
-              <CommandShortcut>Active</CommandShortcut>
-            )}
+          </CommandItem>
+          <CommandItem
+            value="dark mode theme"
+            onSelect={() => runCommand(() => setTheme("dark"))}
+          >
+            <Moon size={16} />
+            <span>Dark Mode</span>
+          </CommandItem>
+          <CommandItem
+            value="system auto theme"
+            onSelect={() => runCommand(() => setTheme("system"))}
+          >
+            <Desktop size={16} />
+            <span>System Theme</span>
           </CommandItem>
         </CommandGroup>
       </CommandList>

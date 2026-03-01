@@ -14,6 +14,7 @@ const routeTitles: Record<string, string> = {
   "/budgets": "Budgets",
   "/verify": "Verify",
   "/settings": "Settings",
+  "/onboarding": "Welcome",
 }
 
 function SearchTrigger(): React.ReactElement {

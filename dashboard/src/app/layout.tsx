@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Toaster } from "sonner";
 import { Providers } from "@/components/providers/providers";
 import { bodyFont, headingFont, monoFont } from "@/lib/fonts";
 import "./globals.css";
@@ -21,6 +22,13 @@ export default function RootLayout({
 		>
 			<body className="min-h-screen antialiased">
 				<Providers>{children}</Providers>
+				<Toaster
+					position="bottom-right"
+					toastOptions={{
+						className:
+							"border border-border bg-card text-card-foreground !shadow-none",
+					}}
+				/>
 			</body>
 		</html>
 	);

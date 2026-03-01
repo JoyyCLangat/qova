@@ -24,6 +24,9 @@ import type * as queries_activity from "../queries/activity.js";
 import type * as queries_agents from "../queries/agents.js";
 import type * as queries_scores from "../queries/scores.js";
 import type * as queries_stats from "../queries/stats.js";
+import type * as mutations_users from "../mutations/users.js";
+import type * as queries_users from "../queries/users.js";
+import type * as users from "../users.js";
 
 declare const fullApi: ApiFromModules<{
   "actions/chain": typeof actions_chain;
@@ -33,10 +36,13 @@ declare const fullApi: ApiFromModules<{
   "mutations/scores": typeof mutations_scores;
   "mutations/seed": typeof mutations_seed;
   "mutations/stats": typeof mutations_stats;
+  "mutations/users": typeof mutations_users;
   "queries/activity": typeof queries_activity;
   "queries/agents": typeof queries_agents;
   "queries/scores": typeof queries_scores;
   "queries/stats": typeof queries_stats;
+  "queries/users": typeof queries_users;
+  "users": typeof users;
 }>;
 
 export declare const api: FilterApi<
