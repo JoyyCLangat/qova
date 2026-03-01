@@ -9,7 +9,6 @@ import {
   Gear,
   Globe,
   Key,
-  MagnifyingGlass,
   Plugs,
   Robot,
   ShieldCheck,
@@ -100,11 +99,6 @@ const data = {
     },
   ],
   navSecondary: [
-    {
-      title: "Search",
-      url: "#search",
-      icon: MagnifyingGlass,
-    },
     {
       title: "Settings",
       url: "/settings",
