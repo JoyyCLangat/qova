@@ -8,6 +8,7 @@ import { ActivityChart } from "@/components/charts/activity-chart"
 import { ScoreBadge } from "@/components/scores/score-badge"
 import { Badge } from "@/components/ui/badge"
 import { useLeaderboard, useRecentActivity } from "@/hooks/use-convex-data"
+import { PageHeader } from "@/components/shared/page-header"
 import {
   Card,
   CardContent,
@@ -41,6 +42,12 @@ export default function OverviewPage(): React.ReactElement {
 
   return (
     <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+      <div className="px-4 lg:px-6">
+        <PageHeader
+          title="Dashboard"
+          subtitle="Real-time overview of your registered agents and the ecosystem"
+        />
+      </div>
       <SectionCards />
 
       <div className="px-4 lg:px-6">
