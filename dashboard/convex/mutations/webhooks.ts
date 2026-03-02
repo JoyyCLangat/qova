@@ -91,3 +91,27 @@ export const remove = mutation({
     await ctx.db.delete(id);
   },
 });
+
+/** Log a webhook delivery attempt. Called by the test action. */
+export const logDelivery = mutation({
+  args: {
+    webhookId: v.id("webhooks"),
+    event: v.string(),
+    payload: v.string(),
+    statusCode: v.optional(v.number()),
+    responseBody: v.optional(v.string()),
+    duration: v.number(),
+    success: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.insert("webhookDeliveries", {
+      webhookId: args.webhookId,
+      event: args.event,
+      payload: args.payload,
+      statusCode: args.statusCode,
+      response: args.responseBody,
+      deliveredAt: Date.now(),
+      success: args.success,
+    });
+  },
+});
