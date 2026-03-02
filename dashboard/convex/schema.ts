@@ -72,6 +72,7 @@ export default defineSchema({
     imageUrl: v.optional(v.string()),
     role: v.string(), // "owner" | "admin" | "developer" | "viewer" | "billing"
     orgId: v.optional(v.string()),
+    walletAddress: v.optional(v.string()),
     onboardingComplete: v.boolean(),
     createdAt: v.number(),
     lastLoginAt: v.optional(v.number()),

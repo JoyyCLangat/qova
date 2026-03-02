@@ -10,6 +10,7 @@ import {
 } from "convex/react";
 import { ThemeProvider } from "next-themes";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Web3Provider } from "@/providers/web3-provider";
 
 const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL ?? "";
 const clerkPubKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "";
@@ -51,7 +52,9 @@ function InnerProviders({
 				enableSystem
 				disableTransitionOnChange
 			>
-				<TooltipProvider>{children}</TooltipProvider>
+				<Web3Provider>
+					<TooltipProvider>{children}</TooltipProvider>
+				</Web3Provider>
 			</ThemeProvider>
 		</ConvexAvailableContext.Provider>
 	);

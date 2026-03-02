@@ -202,6 +202,15 @@ body {
 	box-shadow: none !important;
 }
 
+/* RainbowKit shadow kill */
+[data-rk] * {
+	box-shadow: none !important;
+}
+[data-rk] [role="dialog"] {
+	border: 1px solid var(--border) !important;
+	border-radius: 12px !important;
+}
+
 /* Smooth theme color transitions */
 * {
 	transition-property: color, background-color, border-color;
