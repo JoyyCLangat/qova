@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowsLeftRight, Plus, Receipt } from "@phosphor-icons/react";
+import { ArrowsLeftRight, Funnel, Plus, Receipt } from "@phosphor-icons/react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { useMutation } from "convex/react";
 import Link from "next/link";
@@ -10,6 +10,15 @@ import { DataTable } from "@/components/data/data-table";
 import { EmptyState } from "@/components/data/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import {
 	Table,
 	TableBody,
@@ -103,7 +112,7 @@ const txColumns: ColumnDef<TxRow>[] = [
 export default function TransactionsPage(): React.ReactElement {
 	const available = useConvexAvailable();
 	const agents = useAgentList();
-	const recentActivity = useRecentActivity(20);
+	const recentActivity = useRecentActivity(50);
 	const logActivity = useMutation(api.mutations.activity.logActivity);
 
 	// Form state
@@ -114,6 +123,9 @@ export default function TransactionsPage(): React.ReactElement {
 	const [submitting, setSubmitting] = useState(false);
 	const [formError, setFormError] = useState<string | null>(null);
 	const [formSuccess, setFormSuccess] = useState(false);
+
+	// Activity filter state
+	const [activityTypeFilter, setActivityTypeFilter] = useState("all");
 
 	const txStats: TxRow[] = useMemo(() => {
 		return agents
@@ -127,6 +139,19 @@ export default function TransactionsPage(): React.ReactElement {
 				lastActivity: a.lastActivity ?? new Date().toISOString(),
 			}));
 	}, [agents]);
+
+	const filteredActivity = useMemo(() => {
+		if (activityTypeFilter === "all") return recentActivity;
+		return recentActivity.filter((tx) => tx.type === activityTypeFilter);
+	}, [recentActivity, activityTypeFilter]);
+
+	const activityTypes = useMemo(() => {
+		const types = new Set<string>();
+		for (const tx of recentActivity) {
+			if (tx.type) types.add(tx.type);
+		}
+		return Array.from(types).sort();
+	}, [recentActivity]);
 
 	async function handleSubmit(): Promise<void> {
 		setFormError(null);
@@ -217,66 +242,87 @@ export default function TransactionsPage(): React.ReactElement {
 				</div>
 
 				<div className="grid gap-4 sm:grid-cols-2">
-					<div className="space-y-1.5">
-						<label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+					<div className="space-y-2">
+						<Label className="text-xs uppercase tracking-wider text-muted-foreground">
 							Agent Address
-						</label>
-						<input
-							type="text"
+						</Label>
+						<Input
 							value={agentAddr}
 							onChange={(e) => {
 								setAgentAddr(e.target.value);
 								setFormError(null);
 							}}
 							placeholder="0x..."
-							className="w-full rounded-md border bg-transparent px-3 py-2 font-mono text-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none"
+							className="font-mono text-sm"
+							aria-invalid={formError?.toLowerCase().includes("agent") ? true : undefined}
 						/>
+						{agents.length > 0 && !agentAddr && (
+							<div className="flex flex-wrap gap-1.5">
+								{agents.slice(0, 4).map((a) => (
+									<button
+										key={a.address}
+										type="button"
+										onClick={() => {
+											setAgentAddr(a.address);
+											setFormError(null);
+										}}
+										className="rounded-md border px-2 py-0.5 font-mono text-[10px] text-muted-foreground hover:border-ring hover:text-foreground transition-colors"
+									>
+										{a.addressShort}
+									</button>
+								))}
+							</div>
+						)}
 					</div>
-					<div className="space-y-1.5">
-						<label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+					<div className="space-y-2">
+						<Label className="text-xs uppercase tracking-wider text-muted-foreground">
 							Transaction Hash
-						</label>
-						<input
-							type="text"
+						</Label>
+						<Input
 							value={txHash}
 							onChange={(e) => {
 								setTxHash(e.target.value);
 								setFormError(null);
 							}}
 							placeholder="0x..."
-							className="w-full rounded-md border bg-transparent px-3 py-2 font-mono text-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none"
+							className="font-mono text-sm"
+							aria-invalid={formError?.toLowerCase().includes("hash") ? true : undefined}
 						/>
 					</div>
-					<div className="space-y-1.5">
-						<label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+					<div className="space-y-2">
+						<Label className="text-xs uppercase tracking-wider text-muted-foreground">
 							Amount (ETH)
-						</label>
-						<input
-							type="text"
+						</Label>
+						<Input
 							value={amount}
 							onChange={(e) => {
 								setAmount(e.target.value);
 								setFormError(null);
 							}}
 							placeholder="0.0"
-							className="w-full rounded-md border bg-transparent px-3 py-2 font-mono text-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none"
+							className="font-mono text-sm"
+							aria-invalid={formError?.toLowerCase().includes("amount") ? true : undefined}
 						/>
 					</div>
-					<div className="space-y-1.5">
-						<label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+					<div className="space-y-2">
+						<Label className="text-xs uppercase tracking-wider text-muted-foreground">
 							Transaction Type
-						</label>
-						<select
-							value={txType}
-							onChange={(e) => setTxType(Number(e.target.value))}
-							className="w-full rounded-md border bg-transparent px-3 py-2 text-sm focus:border-ring focus:outline-none"
+						</Label>
+						<Select
+							value={String(txType)}
+							onValueChange={(val) => setTxType(Number(val))}
 						>
-							{TX_TYPES.map((t) => (
-								<option key={t.value} value={t.value}>
-									{t.label}
-								</option>
-							))}
-						</select>
+							<SelectTrigger className="w-full">
+								<SelectValue />
+							</SelectTrigger>
+							<SelectContent>
+								{TX_TYPES.map((t) => (
+									<SelectItem key={t.value} value={String(t.value)}>
+										{t.label}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
 					</div>
 				</div>
 
@@ -306,6 +352,10 @@ export default function TransactionsPage(): React.ReactElement {
 					columns={txColumns}
 					data={txStats}
 					pageSize={10}
+					searchable
+					searchPlaceholder="Search agents..."
+					getRowHref={(row) => `/agents/${row.agent}`}
+					showPageSizeSelector
 					emptyState={
 						<EmptyState
 							icon={<ArrowsLeftRight size={40} />}
@@ -319,7 +369,35 @@ export default function TransactionsPage(): React.ReactElement {
 			{/* Recent Activity */}
 			{recentActivity.length > 0 && (
 				<div className="rounded-lg border bg-card p-5">
-					<h2 className="mb-4 text-sm font-medium text-foreground">Recent Activity</h2>
+					<div className="mb-4 flex items-center justify-between">
+						<h2 className="text-sm font-medium text-foreground">
+							Recent Activity
+							<span className="ml-2 text-xs text-muted-foreground font-normal">
+								{filteredActivity.length} of {recentActivity.length}
+							</span>
+						</h2>
+						{activityTypes.length > 1 && (
+							<div className="flex items-center gap-2">
+								<Funnel size={14} className="text-muted-foreground" />
+								<Select
+									value={activityTypeFilter}
+									onValueChange={setActivityTypeFilter}
+								>
+									<SelectTrigger className="h-7 w-28 text-xs" size="sm">
+										<SelectValue />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="all">All types</SelectItem>
+										{activityTypes.map((type) => (
+											<SelectItem key={type} value={type}>
+												{type}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+							</div>
+						)}
+					</div>
 					<div className="overflow-hidden rounded-lg border">
 						<Table>
 							<TableHeader>
@@ -332,34 +410,42 @@ export default function TransactionsPage(): React.ReactElement {
 								</TableRow>
 							</TableHeader>
 							<TableBody>
-								{recentActivity.map((tx) => (
-									<TableRow key={tx._id}>
-										<TableCell className="px-4 py-3">
-											<Link
-												href={`/agents/${tx.agent}`}
-												className="font-mono text-xs text-muted-foreground hover:text-foreground transition-colors"
-											>
-												{tx.addressShort}
-											</Link>
-										</TableCell>
-										<TableCell className="px-4 py-3">
-											<Badge variant="outline">{tx.type}</Badge>
-										</TableCell>
-										<TableCell className="px-4 py-3 max-w-[200px]">
-											<span className="truncate text-xs text-muted-foreground">
-												{tx.description}
-											</span>
-										</TableCell>
-										<TableCell className="px-4 py-3 text-right">
-											{tx.amount && <span className="font-mono text-xs">{tx.amount}</span>}
-										</TableCell>
-										<TableCell className="px-4 py-3 text-right">
-											<span className="text-xs text-muted-foreground">
-												{timeAgo(tx.timestamp)}
-											</span>
+								{filteredActivity.length > 0 ? (
+									filteredActivity.map((tx) => (
+										<TableRow key={tx._id}>
+											<TableCell className="px-4 py-3">
+												<Link
+													href={`/agents/${tx.agent}`}
+													className="font-mono text-xs text-muted-foreground hover:text-foreground transition-colors"
+												>
+													{tx.addressShort}
+												</Link>
+											</TableCell>
+											<TableCell className="px-4 py-3">
+												<Badge variant="outline">{tx.type}</Badge>
+											</TableCell>
+											<TableCell className="px-4 py-3 max-w-[200px]">
+												<span className="truncate text-xs text-muted-foreground">
+													{tx.description}
+												</span>
+											</TableCell>
+											<TableCell className="px-4 py-3 text-right">
+												{tx.amount && <span className="font-mono text-xs">{tx.amount}</span>}
+											</TableCell>
+											<TableCell className="px-4 py-3 text-right">
+												<span className="text-xs text-muted-foreground">
+													{timeAgo(tx.timestamp)}
+												</span>
+											</TableCell>
+										</TableRow>
+									))
+								) : (
+									<TableRow>
+										<TableCell colSpan={5} className="px-4 py-8 text-center text-sm text-muted-foreground">
+											No transactions matching filter
 										</TableCell>
 									</TableRow>
-								))}
+								)}
 							</TableBody>
 						</Table>
 					</div>

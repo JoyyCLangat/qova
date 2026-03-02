@@ -9,6 +9,7 @@ import {
   TrendDown,
 } from "@phosphor-icons/react"
 import { useAgentList } from "@/hooks/use-convex-data"
+import { NumberTicker } from "@/components/ui/number-ticker"
 import { Badge } from "@/components/ui/badge"
 import {
   Card,
@@ -19,7 +20,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 
-export function SectionCards() {
+export function SectionCards(): React.ReactElement {
   const agents = useAgentList()
 
   const totalAgents = agents.length
@@ -28,6 +29,7 @@ export function SectionCards() {
     : 0
   const highGrade = agents.filter((a) => a.score >= 700).length
   const registered = agents.filter((a) => a.isRegistered).length
+  const volumeNum = parseVolumeNum(agents)
 
   return (
     <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
@@ -35,7 +37,7 @@ export function SectionCards() {
         <CardHeader>
           <CardDescription>Total Agents</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums font-mono @[250px]/card:text-3xl">
-            {totalAgents}
+            <NumberTicker key={totalAgents} value={totalAgents} />
           </CardTitle>
           <CardAction>
             <Badge variant="outline">
@@ -58,7 +60,8 @@ export function SectionCards() {
         <CardHeader>
           <CardDescription>Average Score</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums font-mono @[250px]/card:text-3xl">
-            {avgScore}
+            <NumberTicker key={avgScore} value={avgScore} />
+            <span className="text-sm font-normal text-muted-foreground ml-1">/ 1000</span>
           </CardTitle>
           <CardAction>
             <Badge variant="outline">
@@ -79,9 +82,9 @@ export function SectionCards() {
 
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>High Grade (A+)</CardDescription>
+          <CardDescription>Investment Grade</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums font-mono @[250px]/card:text-3xl">
-            {highGrade}
+            <NumberTicker key={highGrade} value={highGrade} />
           </CardTitle>
           <CardAction>
             <Badge variant="outline">
@@ -104,7 +107,8 @@ export function SectionCards() {
         <CardHeader>
           <CardDescription>Total Volume</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums font-mono @[250px]/card:text-3xl">
-            {totalVolume(agents)}
+            <NumberTicker key={volumeNum} value={volumeNum} decimalPlaces={2} />
+            <span className="text-sm font-normal text-muted-foreground ml-1">ETH</span>
           </CardTitle>
           <CardAction>
             <Badge variant="outline">
@@ -126,12 +130,12 @@ export function SectionCards() {
   )
 }
 
-function totalVolume(agents: { totalVolume?: string }[]): string {
+function parseVolumeNum(agents: { totalVolume?: string }[]): number {
   let sum = 0
   for (const a of agents) {
     if (!a.totalVolume) continue
     const match = a.totalVolume.match(/([\d.]+)/)
     if (match) sum += Number.parseFloat(match[1])
   }
-  return `${sum.toFixed(2)} ETH`
+  return sum
 }

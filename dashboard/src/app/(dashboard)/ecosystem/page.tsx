@@ -10,6 +10,7 @@ import {
   ChartBar,
 } from "@phosphor-icons/react"
 import { Badge } from "@/components/ui/badge"
+import { NumberTicker } from "@/components/ui/number-ticker"
 import { ScoreBadge } from "@/components/scores/score-badge"
 import {
   Card,
@@ -42,7 +43,7 @@ function StatCard({
   subtitle,
 }: {
   label: string
-  value: string | number
+  value: number
   subtitle?: string
 }): React.ReactElement {
   return (
@@ -51,7 +52,9 @@ function StatCard({
         <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
           {label}
         </p>
-        <p className="font-mono text-2xl font-bold tabular-nums">{value}</p>
+        <p className="font-mono text-2xl font-bold tabular-nums">
+          <NumberTicker key={value} value={value} />
+        </p>
         {subtitle && (
           <p className="text-[10px] text-muted-foreground mt-1">{subtitle}</p>
         )}

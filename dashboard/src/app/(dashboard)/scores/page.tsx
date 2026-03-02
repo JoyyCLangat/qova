@@ -220,6 +220,10 @@ export default function ScoresPage(): React.ReactElement {
 					columns={leaderboardColumns}
 					data={leaderboard}
 					pageSize={10}
+					searchable
+					searchPlaceholder="Search leaderboard..."
+					getRowHref={(row) => `/agents/${row.address}`}
+					showPageSizeSelector
 					emptyState={
 						<EmptyState
 							icon={<Trophy size={40} />}

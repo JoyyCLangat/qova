@@ -2,7 +2,6 @@
 
 import {
 	ArrowSquareOut,
-	MagnifyingGlass,
 	Plus,
 	Robot,
 } from "@phosphor-icons/react";
@@ -120,7 +119,6 @@ const columns: ColumnDef<AgentRow>[] = [
 
 export default function AgentsPage(): React.ReactElement {
 	const agents = useAgentList();
-	const [search, setSearch] = useState("");
 	const [registerOpen, setRegisterOpen] = useState(false);
 
 	// Listen for command palette "Register New Agent" event
@@ -134,8 +132,8 @@ export default function AgentsPage(): React.ReactElement {
 		};
 	}, []);
 
-	const filtered: AgentRow[] = useMemo(() => {
-		const rows: AgentRow[] = agents.map((a) => ({
+	const rows: AgentRow[] = useMemo(() => {
+		return agents.map((a) => ({
 			address: a.address,
 			addressShort: a.addressShort,
 			score: a.score,
@@ -145,82 +143,46 @@ export default function AgentsPage(): React.ReactElement {
 			lastUpdated: a.lastUpdated,
 			explorerUrl: a.explorerUrl,
 		}));
-
-		if (!search.trim()) return rows;
-		const q = search.toLowerCase();
-		return rows.filter(
-			(a) =>
-				a.address.toLowerCase().includes(q) ||
-				a.addressShort.toLowerCase().includes(q) ||
-				a.grade.toLowerCase().includes(q),
-		);
-	}, [agents, search]);
+	}, [agents]);
 
 	return (
 		<div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6 px-4 lg:px-6">
-			<PageHeader
-				breadcrumb="Operations"
-				title="Agents"
-				subtitle="All AI agents registered on the Qova protocol"
-			/>
-
-			{/* Toolbar */}
 			<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-				<h2 className="font-heading text-lg font-semibold">
-					Registered Agents
-					<span className="ml-2 font-mono text-xs font-normal text-muted-foreground">
-						{agents.length} total
-					</span>
-				</h2>
-
-				<div className="flex items-center gap-3">
-					<div className="relative">
-						<MagnifyingGlass
-							size={14}
-							className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-						/>
-						<input
-							type="text"
-							value={search}
-							onChange={(e) => setSearch(e.target.value)}
-							placeholder="Search agents..."
-							className="w-56 rounded-md border bg-background pl-8 pr-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-						/>
-					</div>
-					<RegisterAgentDialog
-						open={registerOpen}
-						onOpenChange={setRegisterOpen}
-					>
-						<Button>
-							<Plus size={14} weight="bold" />
-							Register Agent
-						</Button>
-					</RegisterAgentDialog>
-				</div>
+				<PageHeader
+					breadcrumb="Operations"
+					title="Agents"
+					subtitle="All AI agents registered on the Qova protocol"
+				/>
+				<RegisterAgentDialog
+					open={registerOpen}
+					onOpenChange={setRegisterOpen}
+				>
+					<Button>
+						<Plus size={14} weight="bold" />
+						Register Agent
+					</Button>
+				</RegisterAgentDialog>
 			</div>
 
 			{/* Table */}
 			<DataTable<AgentRow, unknown>
 				columns={columns}
-				data={filtered}
+				data={rows}
 				pageSize={10}
+				searchable
+				searchPlaceholder="Search by address or grade..."
+				getRowHref={(row) => `/agents/${row.address}`}
+				showPageSizeSelector
+				showColumnToggle
 				emptyState={
 					<EmptyState
 						icon={<Robot size={40} />}
-						title={search ? "No matching agents" : "No agents registered"}
-						description={
-							search
-								? "Try adjusting your search query."
-								: "Register your first agent to get started with trust scoring."
-						}
-						action={
-							!search
-								? {
-										label: "Register Agent",
-										onClick: () => setRegisterOpen(true),
-									}
-								: undefined
-						}
+						title="No agents registered"
+						description="Register your first agent to get started with trust scoring."
+						action={{
+							label: "Register Agent",
+							onClick: () => setRegisterOpen(true),
+						}}
 					/>
 				}
 			/>
