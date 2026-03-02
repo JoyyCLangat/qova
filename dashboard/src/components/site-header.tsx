@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Bell } from "@phosphor-icons/react"
+import { Bell, MagnifyingGlass } from "@phosphor-icons/react"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
@@ -48,6 +48,7 @@ function SearchTrigger(): React.ReactElement {
       onClick={handleClick}
       className="hidden md:inline-flex gap-2 text-muted-foreground font-normal"
     >
+      <MagnifyingGlass className="size-4" />
       <span className="text-xs">Search...</span>
       <kbd className="pointer-events-none inline-flex h-5 items-center gap-0.5 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
         <span className="text-[11px]">&#8984;</span>K
