@@ -14,6 +14,7 @@ import { StatusBadge } from "@/components/data/status-badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { PageHeader } from "@/components/shared/page-header"
 import {
   Card,
   CardContent,
@@ -68,6 +69,12 @@ export default function SettingsPage(): React.ReactElement {
   return (
     <div className="px-4 lg:px-6">
       <div className="mx-auto max-w-3xl w-full space-y-6">
+        <PageHeader
+          breadcrumb="Settings"
+          title="Settings"
+          subtitle="Dashboard preferences and account management"
+        />
+
         {/* Profile */}
         <Card>
           <CardHeader>

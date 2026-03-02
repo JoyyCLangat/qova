@@ -17,6 +17,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { PageHeader } from "@/components/shared/page-header"
 import { toast } from "sonner"
 
 interface Endpoint {
@@ -120,12 +121,11 @@ export default function ApiDocsPage(): React.ReactElement {
   return (
     <div className="flex flex-col gap-6 py-4 md:py-6">
       <div className="px-4 lg:px-6">
-        <div className="flex flex-col gap-1">
-          <h2 className="text-lg font-semibold tracking-tight">API Documentation</h2>
-          <p className="text-sm text-muted-foreground">
-            Reference documentation for the Qova REST API
-          </p>
-        </div>
+        <PageHeader
+          breadcrumb="Developers"
+          title="API Reference"
+          subtitle="Explore and test the Qova API"
+        />
       </div>
 
       {/* Quick Start */}

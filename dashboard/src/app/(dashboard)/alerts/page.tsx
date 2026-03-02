@@ -4,7 +4,6 @@ import { useState } from "react"
 import Link from "next/link"
 import {
   Bell,
-  BellRinging,
   CheckCircle,
   Warning,
   ShieldCheck,
@@ -14,6 +13,7 @@ import {
 } from "@phosphor-icons/react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { PageHeader } from "@/components/shared/page-header"
 import {
   Card,
   CardContent,
@@ -140,27 +140,19 @@ export default function AlertsPage(): React.ReactElement {
   return (
     <div className="flex flex-col gap-6 py-4 md:py-6">
       <div className="px-4 lg:px-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <BellRinging className="size-5" />
-            <div>
-              <h2 className="text-lg font-semibold tracking-tight">
-                Notifications
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                {unreadCount > 0
-                  ? `${unreadCount} unread notification${unreadCount !== 1 ? "s" : ""}`
-                  : "All caught up"}
-              </p>
-            </div>
-          </div>
-          {unreadCount > 0 && (
-            <Button size="sm" variant="outline" onClick={markAllRead}>
-              <Checks className="size-4 mr-1" />
-              Mark all read
-            </Button>
-          )}
-        </div>
+        <PageHeader
+          breadcrumb="Alerts"
+          title="Alerts"
+          subtitle="Notifications about score changes, budget warnings, and anomalies"
+          actions={
+            unreadCount > 0 ? (
+              <Button size="sm" variant="outline" onClick={markAllRead}>
+                <Checks className="size-4 mr-1" />
+                Mark all read
+              </Button>
+            ) : undefined
+          }
+        />
       </div>
 
       {/* Filters */}

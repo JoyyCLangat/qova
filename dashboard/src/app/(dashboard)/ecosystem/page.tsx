@@ -26,6 +26,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { PageHeader } from "@/components/shared/page-header"
 import {
   useAgentList,
   useSystemStats,
@@ -141,14 +142,11 @@ export default function EcosystemPage(): React.ReactElement {
     <div className="flex flex-col gap-6 py-4 md:py-6">
       {/* Header */}
       <div className="px-4 lg:px-6">
-        <div className="flex flex-col gap-1">
-          <h2 className="text-lg font-semibold tracking-tight">
-            Ecosystem Intelligence
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Macro view of agent creditworthiness across the network
-          </p>
-        </div>
+        <PageHeader
+          breadcrumb="Intelligence"
+          title="Ecosystem"
+          subtitle="The state of the autonomous agent economy on Base"
+        />
       </div>
 
       {/* Macro Stats */}

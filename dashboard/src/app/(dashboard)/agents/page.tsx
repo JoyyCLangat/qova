@@ -15,6 +15,7 @@ import { ScoreBadge } from "@/components/scores/score-badge";
 import { StatusBadge } from "@/components/data/status-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/shared/page-header";
 import { RegisterAgentDialog } from "@/components/register-agent-dialog";
 import { useAgentList } from "@/hooks/use-convex-data";
 
@@ -157,6 +158,12 @@ export default function AgentsPage(): React.ReactElement {
 
 	return (
 		<div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6 px-4 lg:px-6">
+			<PageHeader
+				breadcrumb="Operations"
+				title="Agents"
+				subtitle="All AI agents registered on the Qova protocol"
+			/>
+
 			{/* Toolbar */}
 			<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 				<h2 className="font-heading text-lg font-semibold">

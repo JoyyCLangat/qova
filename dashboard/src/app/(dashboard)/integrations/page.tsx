@@ -29,6 +29,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { PageHeader } from "@/components/shared/page-header"
 import {
   Dialog,
   DialogContent,
@@ -223,19 +224,11 @@ export default function IntegrationsPage(): React.ReactElement {
   return (
     <div className="flex flex-col gap-6 py-4 md:py-6">
       <div className="px-4 lg:px-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Plugs className="size-5" />
-            <div>
-              <h2 className="text-lg font-semibold tracking-tight">
-                Integrations
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                {connectedCount} connected, {INTEGRATIONS.length - connectedCount} available
-              </p>
-            </div>
-          </div>
-        </div>
+        <PageHeader
+          breadcrumb="Operations"
+          title="Integrations"
+          subtitle="Connect Qova with your existing tools"
+        />
       </div>
 
       {/* Search + Filters */}

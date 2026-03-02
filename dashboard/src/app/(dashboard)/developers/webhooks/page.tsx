@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { PageHeader } from "@/components/shared/page-header"
 import { toast } from "sonner"
 
 const WEBHOOK_EVENTS = [
@@ -100,70 +101,69 @@ export default function WebhooksPage(): React.ReactElement {
   return (
     <div className="flex flex-col gap-6 py-4 md:py-6">
       <div className="px-4 lg:px-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-semibold tracking-tight">Webhooks</h2>
-            <p className="text-sm text-muted-foreground">
-              Receive real-time notifications when events occur
-            </p>
-          </div>
-          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm">
-                <Plus className="size-4 mr-1" />
-                Add Endpoint
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add Webhook Endpoint</DialogTitle>
-                <DialogDescription>
-                  Configure a URL to receive event notifications.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 py-2">
-                <div className="space-y-2">
-                  <Label>Endpoint URL</Label>
-                  <Input
-                    value={newUrl}
-                    onChange={(e) => setNewUrl(e.target.value)}
-                    placeholder="https://api.example.com/webhooks"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Events</Label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {WEBHOOK_EVENTS.map((event) => (
-                      <button
-                        key={event}
-                        type="button"
-                        onClick={() => toggleEvent(event)}
-                        className={`rounded-md border px-3 py-2 text-left text-xs font-mono transition-colors cursor-pointer ${
-                          selectedEvents.includes(event)
-                            ? "border-foreground bg-accent"
-                            : "hover:bg-accent/50"
-                        }`}
-                      >
-                        {event}
-                      </button>
-                    ))}
+        <PageHeader
+          breadcrumb="Developers"
+          title="Webhooks"
+          subtitle="Real-time event notifications for your applications"
+          actions={
+            <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm">
+                  <Plus className="size-4 mr-1" />
+                  Add Endpoint
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add Webhook Endpoint</DialogTitle>
+                  <DialogDescription>
+                    Configure a URL to receive event notifications.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-2">
+                  <div className="space-y-2">
+                    <Label>Endpoint URL</Label>
+                    <Input
+                      value={newUrl}
+                      onChange={(e) => setNewUrl(e.target.value)}
+                      placeholder="https://api.example.com/webhooks"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Events</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {WEBHOOK_EVENTS.map((event) => (
+                        <button
+                          key={event}
+                          type="button"
+                          onClick={() => toggleEvent(event)}
+                          className={`rounded-md border px-3 py-2 text-left text-xs font-mono transition-colors cursor-pointer ${
+                            selectedEvents.includes(event)
+                              ? "border-foreground bg-accent"
+                              : "hover:bg-accent/50"
+                          }`}
+                        >
+                          {event}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setCreateOpen(false)}>
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleCreate}
-                  disabled={!newUrl.trim() || selectedEvents.length === 0}
-                >
-                  Create
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setCreateOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleCreate}
+                    disabled={!newUrl.trim() || selectedEvents.length === 0}
+                  >
+                    Create
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          }
+        />
       </div>
 
       <div className="px-4 lg:px-6">

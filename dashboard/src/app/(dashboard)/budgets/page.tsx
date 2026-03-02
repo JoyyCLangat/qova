@@ -7,6 +7,7 @@ import { api } from "../../../../convex/_generated/api";
 import { BudgetUsage } from "@/components/charts/budget-usage";
 import { EmptyState } from "@/components/data/empty-state";
 import { useAgentList } from "@/hooks/use-convex-data";
+import { PageHeader } from "@/components/shared/page-header";
 import { useConvexAvailable } from "@/components/providers/convex-provider";
 
 function isValidAddress(addr: string): boolean {
@@ -114,6 +115,12 @@ export default function BudgetsPage(): React.ReactElement {
 
 	return (
 		<div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6 px-4 lg:px-6">
+			<PageHeader
+				breadcrumb="Operations"
+				title="Budgets"
+				subtitle="Spending limits and utilization for your agents"
+			/>
+
 			{/* Set Budget */}
 			<div className="rounded-lg border bg-card p-5">
 				<div className="mb-4 flex items-center gap-2">

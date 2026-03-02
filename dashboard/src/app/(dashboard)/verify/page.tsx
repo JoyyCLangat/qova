@@ -15,6 +15,7 @@ import { api } from "../../../../convex/_generated/api";
 import { ScoreBadge } from "@/components/scores/score-badge";
 import { StatusBadge } from "@/components/data/status-badge";
 import { useConvexAvailable } from "@/components/providers/convex-provider";
+import { PageHeader } from "@/components/shared/page-header";
 import { getGrade } from "@/lib/constants";
 
 function isValidAddress(addr: string): boolean {
@@ -72,6 +73,12 @@ export default function VerifyPage(): React.ReactElement {
 
 	return (
 		<div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6 px-4 lg:px-6">
+			<PageHeader
+				breadcrumb="Intelligence"
+				title="Verify an Agent"
+				subtitle="Check any AI agent's on-chain reputation score"
+			/>
+
 			<div className="mx-auto max-w-2xl space-y-6">
 				{/* Verify Input */}
 				<div className="rounded-lg border bg-card p-6">

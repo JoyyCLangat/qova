@@ -34,6 +34,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { PageHeader } from "@/components/shared/page-header"
 import { useCreWorkflows, useRecentCreExecutions } from "@/hooks/use-convex-data"
 import type { ComponentType } from "react"
 import type { IconProps } from "@phosphor-icons/react"
@@ -101,12 +102,11 @@ export default function CrePage(): React.ReactElement {
     <div className="flex flex-col gap-6 py-4 md:py-6">
       {/* Header */}
       <div className="px-4 lg:px-6">
-        <div className="flex flex-col gap-1">
-          <h2 className="text-lg font-semibold tracking-tight">CRE Scoring Engine</h2>
-          <p className="text-sm text-muted-foreground">
-            Chainlink CRE workflows that compute composite trust scores for AI agents
-          </p>
-        </div>
+        <PageHeader
+          breadcrumb="Intelligence"
+          title="Scoring Engine"
+          subtitle="How Qova computes reputation scores using Chainlink CRE"
+        />
       </div>
 
       {/* Methodology Explainer */}

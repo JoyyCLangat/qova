@@ -11,6 +11,7 @@ import { ScoreBadge } from "@/components/scores/score-badge";
 import { ScoreRing } from "@/components/scores/score-ring";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/shared/page-header";
 import { useAgentByAddress, useLeaderboard, useScoreHistory } from "@/hooks/use-convex-data";
 
 function isValidAddress(addr: string): boolean {
@@ -158,6 +159,12 @@ export default function ScoresPage(): React.ReactElement {
 
 	return (
 		<div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6 px-4 lg:px-6">
+			<PageHeader
+				breadcrumb="Intelligence"
+				title="Score Analytics"
+				subtitle="Distribution, trends, and leaderboard of agent reputation scores"
+			/>
+
 			{/* Score Distribution Chart */}
 			<ScoreDistribution />
 

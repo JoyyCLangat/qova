@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/table";
 import { useAgentList, useRecentActivity } from "@/hooks/use-convex-data";
 import { useConvexAvailable } from "@/components/providers/convex-provider";
+import { PageHeader } from "@/components/shared/page-header";
 import { TX_TYPES } from "@/lib/constants";
 
 function isValidAddress(addr: string): boolean {
@@ -202,6 +203,12 @@ export default function TransactionsPage(): React.ReactElement {
 
 	return (
 		<div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6 px-4 lg:px-6">
+			<PageHeader
+				breadcrumb="Operations"
+				title="Transactions"
+				subtitle="On-chain transaction records across your agents"
+			/>
+
 			{/* Record Transaction */}
 			<div className="rounded-lg border bg-card p-5">
 				<div className="mb-4 flex items-center gap-2">

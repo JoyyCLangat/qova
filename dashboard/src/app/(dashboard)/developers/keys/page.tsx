@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { PageHeader } from "@/components/shared/page-header"
 import { toast } from "sonner"
 
 interface ApiKeyEntry {
@@ -98,48 +99,47 @@ export default function ApiKeysPage(): React.ReactElement {
   return (
     <div className="flex flex-col gap-6 py-4 md:py-6">
       <div className="px-4 lg:px-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-semibold tracking-tight">API Keys</h2>
-            <p className="text-sm text-muted-foreground">
-              Manage API keys for programmatic access to the Qova API
-            </p>
-          </div>
-          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm">
-                <Plus className="size-4 mr-1" />
-                Create Key
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Create API Key</DialogTitle>
-                <DialogDescription>
-                  Give your key a name to identify its usage.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 py-2">
-                <div className="space-y-2">
-                  <Label>Key Name</Label>
-                  <Input
-                    value={newKeyName}
-                    onChange={(e) => setNewKeyName(e.target.value)}
-                    placeholder="e.g., Production, CI/CD"
-                  />
+        <PageHeader
+          breadcrumb="Developers"
+          title="API Keys"
+          subtitle="Programmatic access to the Qova protocol"
+          actions={
+            <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm">
+                  <Plus className="size-4 mr-1" />
+                  Create Key
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create API Key</DialogTitle>
+                  <DialogDescription>
+                    Give your key a name to identify its usage.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-2">
+                  <div className="space-y-2">
+                    <Label>Key Name</Label>
+                    <Input
+                      value={newKeyName}
+                      onChange={(e) => setNewKeyName(e.target.value)}
+                      placeholder="e.g., Production, CI/CD"
+                    />
+                  </div>
                 </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setCreateOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleCreate} disabled={!newKeyName.trim()}>
-                  Create
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setCreateOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleCreate} disabled={!newKeyName.trim()}>
+                    Create
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          }
+        />
       </div>
 
       {/* Revealed key banner */}
