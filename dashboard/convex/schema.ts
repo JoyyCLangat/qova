@@ -205,5 +205,37 @@ export default defineSchema({
     createdAt: v.number(),
   })
     .index("by_user", ["userId"])
-    .index("by_type", ["type"]),
+    .index("by_type", ["type"])
+    .index("by_user_type", ["userId", "type"]),
+
+  // ─── Team Members ──────────────────────────────────────────────
+  teamMembers: defineTable({
+    userId: v.string(), // Owner of this team
+    memberEmail: v.string(),
+    memberName: v.string(),
+    role: v.string(), // "admin" | "editor" | "viewer"
+    status: v.string(), // "active" | "invited" | "removed"
+    invitedAt: v.number(),
+    joinedAt: v.optional(v.number()),
+  })
+    .index("by_userId", ["userId"])
+    .index("by_email", ["memberEmail"]),
+
+  // ─── User Settings ─────────────────────────────────────────────
+  userSettings: defineTable({
+    userId: v.string(),
+    // Notification preferences
+    emailScoreAlerts: v.boolean(),
+    emailBudgetAlerts: v.boolean(),
+    emailSecurityAlerts: v.boolean(),
+    emailWeeklyDigest: v.boolean(),
+    pushScoreAlerts: v.boolean(),
+    pushBudgetAlerts: v.boolean(),
+    pushSecurityAlerts: v.boolean(),
+    // Display preferences
+    defaultChartRange: v.string(), // "7d" | "30d" | "90d"
+    compactView: v.boolean(),
+    timezone: v.string(),
+  })
+    .index("by_userId", ["userId"]),
 });
