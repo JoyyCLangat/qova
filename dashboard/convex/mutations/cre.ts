@@ -1,8 +1,11 @@
 import { v } from "convex/values";
-import { mutation } from "../_generated/server";
+import { mutation, internalMutation } from "../_generated/server";
 
-/** Seed CRE workflows with default data. */
-export const seedWorkflows = mutation({
+/**
+ * Seed CRE workflows with default data.
+ * Internal only -- not callable from client to prevent production data wipes.
+ */
+export const seedWorkflows = internalMutation({
   args: {},
   handler: async (ctx) => {
     // Clear existing
@@ -116,7 +119,7 @@ export const seedWorkflows = mutation({
   },
 });
 
-/** Record a new CRE execution. */
+/** Record a new CRE execution. Requires authentication. */
 export const createExecution = mutation({
   args: {
     workflowId: v.string(),
@@ -125,6 +128,15 @@ export const createExecution = mutation({
     inputScore: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+
+    // Validate status
+    const validStatuses = new Set(["running", "completed", "failed"]);
+    if (!validStatuses.has(args.status)) {
+      throw new Error(`Invalid status: ${args.status}`);
+    }
+
     return await ctx.db.insert("creExecutions", {
       workflowId: args.workflowId,
       agentAddress: args.agentAddress,
@@ -135,13 +147,22 @@ export const createExecution = mutation({
   },
 });
 
-/** Update workflow status. */
+/** Update workflow status. Requires authentication. */
 export const updateWorkflowStatus = mutation({
   args: {
     workflowId: v.string(),
     status: v.string(),
   },
   handler: async (ctx, { workflowId, status }) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+
+    // Validate status
+    const validStatuses = new Set(["active", "paused", "error"]);
+    if (!validStatuses.has(status)) {
+      throw new Error(`Invalid status: ${status}`);
+    }
+
     const workflow = await ctx.db
       .query("creWorkflows")
       .withIndex("by_workflow_id", (q) => q.eq("workflowId", workflowId))

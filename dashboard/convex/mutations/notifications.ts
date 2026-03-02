@@ -1,10 +1,18 @@
 import { v } from "convex/values";
-import { mutation } from "../_generated/server";
+import { mutation, internalMutation } from "../_generated/server";
 
 /** Mark a notification as read. */
 export const markRead = mutation({
   args: { id: v.id("notifications") },
   handler: async (ctx, { id }) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+
+    const notification = await ctx.db.get(id);
+    if (!notification || notification.userId !== identity.subject) {
+      throw new Error("Forbidden");
+    }
+
     await ctx.db.patch(id, { read: true });
   },
 });
@@ -13,6 +21,10 @@ export const markRead = mutation({
 export const markAllRead = mutation({
   args: { userId: v.string() },
   handler: async (ctx, { userId }) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+    if (identity.subject !== userId) throw new Error("Forbidden");
+
     const unread = await ctx.db
       .query("notifications")
       .withIndex("by_user_unread", (q) =>
@@ -26,8 +38,11 @@ export const markAllRead = mutation({
   },
 });
 
-/** Create a notification. */
-export const create = mutation({
+/**
+ * Create a notification. Internal only -- should not be callable from the client.
+ * Use internalMutation so only server-side code (actions, other mutations) can call it.
+ */
+export const create = internalMutation({
   args: {
     userId: v.string(),
     type: v.string(),

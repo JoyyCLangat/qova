@@ -5,7 +5,11 @@ import { query } from "../_generated/server";
 export const listByUser = query({
   args: { userId: v.string(), limit: v.optional(v.number()) },
   handler: async (ctx, { userId, limit }) => {
-    const cap = limit ?? 50;
+    // Verify caller identity
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || identity.subject !== userId) return [];
+
+    const cap = Math.min(limit ?? 50, 100);
     return await ctx.db
       .query("notifications")
       .withIndex("by_user", (q) => q.eq("userId", userId))
@@ -18,6 +22,10 @@ export const listByUser = query({
 export const countUnread = query({
   args: { userId: v.string() },
   handler: async (ctx, { userId }) => {
+    // Verify caller identity
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || identity.subject !== userId) return 0;
+
     const unread = await ctx.db
       .query("notifications")
       .withIndex("by_user_unread", (q) =>

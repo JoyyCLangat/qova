@@ -1,4 +1,4 @@
-import { mutation } from "../_generated/server";
+import { internalMutation } from "../_generated/server";
 
 const AGENTS = [
 	{ address: "0x742d35Cc6634C0532925a3b844Bc9e7595f2bD18", score: 967, grade: "AAA", gradeColor: "#22C55E" },
@@ -21,8 +21,11 @@ function pad4(n: number): string {
 	return String(n).padStart(4, "0");
 }
 
-/** Seed the Convex database with demo agents, 90 days of score snapshots, and activity. */
-export const seedDemoData = mutation({
+/**
+ * Seed the Convex database with demo agents, 90 days of score snapshots, and activity.
+ * Internal only -- not callable from client-side code to prevent production data wipes.
+ */
+export const seedDemoData = internalMutation({
 	args: {},
 	handler: async (ctx) => {
 		// Clear existing data
