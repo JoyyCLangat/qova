@@ -10,6 +10,8 @@
 
 import type * as actions_chain from "../actions/chain.js";
 import type * as actions_sync from "../actions/sync.js";
+import type * as actions_webhookTest from "../actions/webhookTest.js";
+import type * as integrationConfigs from "../integrationConfigs.js";
 import type * as mutations_activity from "../mutations/activity.js";
 import type * as mutations_agents from "../mutations/agents.js";
 import type * as mutations_apiKeys from "../mutations/apiKeys.js";
@@ -29,6 +31,8 @@ import type * as queries_scores from "../queries/scores.js";
 import type * as queries_stats from "../queries/stats.js";
 import type * as queries_users from "../queries/users.js";
 import type * as queries_webhooks from "../queries/webhooks.js";
+import type * as team from "../team.js";
+import type * as userSettings from "../userSettings.js";
 import type * as users from "../users.js";
 
 import type {
@@ -40,6 +44,8 @@ import type {
 declare const fullApi: ApiFromModules<{
   "actions/chain": typeof actions_chain;
   "actions/sync": typeof actions_sync;
+  "actions/webhookTest": typeof actions_webhookTest;
+  integrationConfigs: typeof integrationConfigs;
   "mutations/activity": typeof mutations_activity;
   "mutations/agents": typeof mutations_agents;
   "mutations/apiKeys": typeof mutations_apiKeys;
@@ -59,6 +65,8 @@ declare const fullApi: ApiFromModules<{
   "queries/stats": typeof queries_stats;
   "queries/users": typeof queries_users;
   "queries/webhooks": typeof queries_webhooks;
+  team: typeof team;
+  userSettings: typeof userSettings;
   users: typeof users;
 }>;
 

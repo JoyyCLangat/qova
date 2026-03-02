@@ -1,6 +1,7 @@
 import { AppSidebar } from "@/components/app-sidebar";
 import { CommandPalette } from "@/components/command-palette";
 import { SiteHeader } from "@/components/site-header";
+import { WalletSync } from "@/components/wallet-sync";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
 export default function DashboardLayout({
@@ -27,6 +28,7 @@ export default function DashboardLayout({
 				</div>
 			</SidebarInset>
 			<CommandPalette />
+			<WalletSync />
 		</SidebarProvider>
 	);
 }
