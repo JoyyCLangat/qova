@@ -16,7 +16,12 @@ const app = new Hono();
 app.use(
 	"*",
 	cors({
-		origin: ["http://localhost:3000", "http://localhost:5173", "https://qova.cc"],
+		origin: [
+			"http://localhost:3000",
+			"http://localhost:5173",
+			"https://qova.cc",
+			"https://qova-dashboard.vercel.app",
+		],
 		allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
 		allowHeaders: ["Content-Type", "Authorization"],
 	}),
