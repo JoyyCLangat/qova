@@ -1,28 +1,9 @@
 "use client"
 
+import { ConnectButton } from "@rainbow-me/rainbowkit"
 import { Wallet as WalletIcon } from "@phosphor-icons/react"
 
-let ConnectButton: typeof import("@rainbow-me/rainbowkit").ConnectButton | null = null
-try {
-  ConnectButton = require("@rainbow-me/rainbowkit").ConnectButton
-} catch {
-  // WalletConnect not configured
-}
-
 export function SidebarWallet(): React.ReactElement {
-  if (!process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || !ConnectButton) {
-    return (
-      <button
-        type="button"
-        disabled
-        className="flex items-center gap-2 w-full px-3 py-2 text-sm text-[var(--text-secondary)] opacity-50 cursor-not-allowed rounded-lg"
-      >
-        <WalletIcon className="size-4" />
-        Connect Wallet
-      </button>
-    )
-  }
-
   return (
     <ConnectButton.Custom>
       {({ account, chain, openConnectModal, openChainModal, openAccountModal, mounted }) => {
