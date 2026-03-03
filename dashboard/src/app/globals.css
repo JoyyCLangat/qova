@@ -2,9 +2,11 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Hide Clerk branding badge */
+/* Hide Clerk footer and branding */
+.clerk-hidden,
 .cl-footer,
 .cl-footerAction,
+.cl-footerPages,
 [data-localization-key="footerPageLink__help"],
 .cl-internal-b3fm6y {
 	display: none !important;

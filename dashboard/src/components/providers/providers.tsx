@@ -82,8 +82,8 @@ export function Providers({
 						card: "shadow-none border border-border",
 						socialButtonsBlockButton: "shadow-none border border-border",
 						formFieldInput: "shadow-none border border-border",
-						footer: { display: "none" },
-						footerAction: { display: "none" },
+						footer: "clerk-hidden",
+						footerAction: "clerk-hidden",
 					},
 				}}
 				signInUrl="/sign-in"
