@@ -1,17 +1,13 @@
 "use client"
 
-import { useState } from "react"
 import {
   Cloud,
   Gear,
   Link as LinkIcon,
   ShieldCheck,
-  Copy,
-  Check,
 } from "@phosphor-icons/react"
 import { useConvexAvailable } from "@/components/providers/convex-provider"
 import { StatusBadge } from "@/components/data/status-badge"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { PageHeader } from "@/components/shared/page-header"
@@ -23,20 +19,11 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 
-function CopyButton({ value }: { value: string }): React.ReactElement {
-  const [copied, setCopied] = useState(false)
-
-  function handleCopy(): void {
-    navigator.clipboard.writeText(value)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
-
-  return (
-    <Button variant="ghost" size="sm" className="size-7 p-0" onClick={handleCopy}>
-      {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
-    </Button>
-  )
+const CHAIN_CONFIG = {
+  name: process.env.NEXT_PUBLIC_CHAIN_NAME ?? "Base",
+  chainId: process.env.NEXT_PUBLIC_CHAIN_ID ?? "8453",
+  explorer: process.env.NEXT_PUBLIC_EXPLORER_URL ?? "https://basescan.org",
+  explorerLabel: process.env.NEXT_PUBLIC_EXPLORER_LABEL ?? "basescan.org",
 }
 
 function SettingRow({
@@ -63,8 +50,7 @@ function SettingRow({
 
 export default function SettingsPage(): React.ReactElement {
   const convexAvailable = useConvexAvailable()
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "Not configured"
-  const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL || "Not configured"
+  const apiConfigured = !!process.env.NEXT_PUBLIC_API_URL
 
   return (
     <div className="px-4 lg:px-6">
@@ -136,32 +122,27 @@ export default function SettingsPage(): React.ReactElement {
               System Status
             </CardTitle>
             <CardDescription>
-              Runtime services and infrastructure health.
+              Service health for dashboard infrastructure.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <SettingRow
-              label="Convex Database"
-              description="Real-time database for agent data, scores, and activity"
+              label="Database"
+              description="Real-time data for agents, scores, and activity"
             >
               <StatusBadge status={convexAvailable ? "active" : "inactive"} />
             </SettingRow>
             <SettingRow
-              label="Qova API"
+              label="API"
               description="On-chain API for agent registration, scoring, and verification"
             >
-              <code className="rounded border bg-muted px-2 py-0.5 font-mono text-xs">
-                {apiUrl === "Not configured" ? "Not set" : "Configured"}
-              </code>
+              <StatusBadge status={apiConfigured ? "active" : "inactive"} />
             </SettingRow>
             <SettingRow
-              label="Convex URL"
-              description="Deployment endpoint for real-time data sync"
+              label="Authentication"
+              description="User identity and session management"
             >
-              <code className="rounded border bg-muted px-2 py-0.5 font-mono text-xs max-w-48 truncate">
-                {convexUrl === "Not configured" ? "Not set" : convexUrl.replace("https://", "")}
-              </code>
-              {convexUrl !== "Not configured" && <CopyButton value={convexUrl} />}
+              <StatusBadge status="active" />
             </SettingRow>
           </CardContent>
         </Card>
@@ -174,24 +155,24 @@ export default function SettingsPage(): React.ReactElement {
               Network
             </CardTitle>
             <CardDescription>
-              Blockchain network and chain configuration.
+              Blockchain network configuration.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <SettingRow label="Chain" description="Target blockchain network">
-              <span className="font-mono text-xs">Base Sepolia</span>
+              <span className="font-mono text-xs">{CHAIN_CONFIG.name}</span>
             </SettingRow>
             <SettingRow label="Chain ID" description="Numeric chain identifier">
-              <span className="font-mono text-xs">84532</span>
+              <span className="font-mono text-xs">{CHAIN_CONFIG.chainId}</span>
             </SettingRow>
             <SettingRow label="Explorer" description="Block explorer for transaction verification">
               <a
-                href="https://sepolia.basescan.org"
+                href={CHAIN_CONFIG.explorer}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-mono text-xs text-muted-foreground hover:text-foreground transition-colors"
               >
-                sepolia.basescan.org
+                {CHAIN_CONFIG.explorerLabel}
               </a>
             </SettingRow>
           </CardContent>
@@ -205,7 +186,7 @@ export default function SettingsPage(): React.ReactElement {
               Security
             </CardTitle>
             <CardDescription>
-              Authentication and verification methods.
+              Verification and trust infrastructure.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -225,7 +206,7 @@ export default function SettingsPage(): React.ReactElement {
               label="Data Integrity"
               description="On-chain hash anchoring for score immutability"
             >
-              <span className="text-xs text-muted-foreground">Base L2</span>
+              <span className="text-xs text-muted-foreground">{CHAIN_CONFIG.name}</span>
             </SettingRow>
           </CardContent>
         </Card>

@@ -281,7 +281,7 @@ export default function CrePage(): React.ReactElement {
               </Table>
             ) : (
               <p className="text-sm text-muted-foreground py-8 text-center">
-                No executions recorded yet. Seed demo data to see workflow history.
+                No executions recorded yet. Workflows will appear here once agents are scored.
               </p>
             )}
           </CardContent>
