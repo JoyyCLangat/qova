@@ -36,6 +36,8 @@ function shortenAddress(address: string): string {
 export const upsertAgent = mutation({
 	args: {
 		address: v.string(),
+		name: v.optional(v.string()),
+		description: v.optional(v.string()),
 		score: v.number(),
 		grade: v.optional(v.string()),
 		gradeColor: v.optional(v.string()),
@@ -91,6 +93,8 @@ export const upsertAgent = mutation({
 				isRegistered: args.isRegistered ?? found.isRegistered,
 				addressShort: args.addressShort ?? found.addressShort,
 				explorerUrl: args.explorerUrl ?? found.explorerUrl,
+				...(args.name !== undefined && { name: args.name }),
+				...(args.description !== undefined && { description: args.description }),
 				...(args.totalTxCount !== undefined && { totalTxCount: args.totalTxCount }),
 				...(args.totalVolume !== undefined && { totalVolume: args.totalVolume }),
 				...(args.successRate !== undefined && { successRate: args.successRate }),
@@ -118,6 +122,8 @@ export const upsertAgent = mutation({
 			explorerUrl:
 				args.explorerUrl ?? `https://basescan.org/address/${args.address}`,
 			ownerId: userId,
+			name: args.name,
+			description: args.description,
 			totalTxCount: args.totalTxCount,
 			totalVolume: args.totalVolume,
 			successRate: args.successRate,

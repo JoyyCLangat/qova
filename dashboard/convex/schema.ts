@@ -5,6 +5,8 @@ export default defineSchema({
   // ─── Core Agent Tables ───────────────────────────────────────────
   agents: defineTable({
     address: v.string(),
+    name: v.optional(v.string()),
+    description: v.optional(v.string()),
     score: v.number(),
     grade: v.string(),
     gradeColor: v.string(),
