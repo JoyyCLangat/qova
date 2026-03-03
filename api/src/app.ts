@@ -7,28 +7,68 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { prettyJSON } from "hono/pretty-json";
+import { bodyLimit } from "hono/body-limit";
 import { errorHandler } from "./middleware/error.js";
+import { rateLimit } from "./middleware/rate-limit.js";
 import { routes } from "./routes/index.js";
 
-const app = new Hono();
+const isProd = process.env.NODE_ENV === "production";
 
-// Middleware
-app.use(
-	"*",
-	cors({
-		origin: [
+const CORS_ORIGINS = isProd
+	? [
+			"https://qova.cc",
+			"https://app.qova.cc",
+			"https://docs.qova.cc",
+		]
+	: [
 			"http://localhost:3000",
 			"http://localhost:5173",
 			"https://qova.cc",
-			"https://qova-dashboard.vercel.app",
-		],
+			"https://app.qova.cc",
+			"https://docs.qova.cc",
+		];
+
+const app = new Hono();
+
+// ─── Security Middleware ──────────────────────────────────────────
+
+// CORS -- restrict to known origins
+app.use(
+	"*",
+	cors({
+		origin: CORS_ORIGINS,
 		allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-		allowHeaders: ["Content-Type", "Authorization"],
+		allowHeaders: ["Content-Type", "Authorization", "X-API-Key"],
+		maxAge: 86400,
 	}),
 );
+
+// Body size limit -- 1MB for all requests
+app.use("*", bodyLimit({ maxSize: 1024 * 1024 }));
+
+// Global rate limit -- 100 req/min per IP
+app.use("*", rateLimit({ windowMs: 60_000, max: 100 }));
+
+// Stricter limit on write endpoints -- 20 req/min per IP
+app.use(
+	"/api/agents/register",
+	rateLimit({ windowMs: 60_000, max: 20 }),
+);
+app.use(
+	"/api/agents/batch-scores",
+	rateLimit({ windowMs: 60_000, max: 10 }),
+);
+app.use(
+	"/api/transactions/record",
+	rateLimit({ windowMs: 60_000, max: 30 }),
+);
+
+// ─── Observability ────────────────────────────────────────────────
 app.use("*", logger());
 app.use("*", prettyJSON());
 app.onError(errorHandler);
+
+// ─── Routes ───────────────────────────────────────────────────────
 
 // Mount API routes under /api
 app.route("/api", routes);
@@ -67,7 +107,6 @@ app.post("/v1/sanctions/check", async (c) => {
 	});
 });
 app.post("/v1/webhook", async (c) => {
-	console.log(`[WEBHOOK] Alert received at ${new Date().toISOString()}`);
 	return c.json({ received: true });
 });
 
@@ -76,8 +115,8 @@ app.get("/", (c) =>
 	c.json({
 		name: "Qova Protocol API",
 		version: "0.1.0",
-		chain: "base-sepolia",
-		docs: "/api/health",
+		chain: isProd ? "base" : "base-sepolia",
+		docs: "https://docs.qova.cc/api",
 	}),
 );
 
