@@ -7,6 +7,7 @@ import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
 import { Button } from "@/components/ui/button"
+import { HeaderWallet } from "@/components/header-wallet"
 
 const routeTitles: Record<string, string> = {
   "/": "Overview",
@@ -84,6 +85,7 @@ export function SiteHeader(): React.ReactElement {
             </Link>
           </Button>
           <ThemeToggle />
+          <HeaderWallet />
         </div>
       </div>
     </header>

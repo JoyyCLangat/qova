@@ -8,20 +8,9 @@ import {
 	CheckCircle,
 	ArrowRight,
 	MagnifyingGlass,
-	Link as LinkIcon,
-	ShieldCheck,
-	Wallet,
-	ChartLineUp,
-	Bell,
-	Database,
-	Globe,
-	CurrencyCircleDollar,
-	Robot,
-	Lightning,
-	Code,
-	ChartBar,
 	Power,
 } from "@phosphor-icons/react";
+import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,11 +34,8 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
 type IntegrationCategory =
-	| "blockchain"
-	| "oracle"
 	| "payment"
 	| "notification"
-	| "data"
 	| "analytics";
 
 interface IntegrationDef {
@@ -57,11 +43,7 @@ interface IntegrationDef {
 	name: string;
 	description: string;
 	category: IntegrationCategory;
-	icon: React.ComponentType<{
-		className?: string;
-		weight?: "fill" | "regular" | "duotone";
-	}>;
-	coreService?: boolean; // Always "connected", not toggleable
+	logo: string;
 	configFields?: { label: string; placeholder: string; key: string }[];
 }
 
@@ -69,68 +51,26 @@ const CATEGORY_CONFIG: Record<
 	IntegrationCategory,
 	{ label: string; color: string }
 > = {
-	blockchain: { label: "Blockchain", color: "text-chart-2" },
-	oracle: { label: "Oracle", color: "text-score-yellow" },
 	payment: { label: "Payment", color: "text-score-green" },
 	notification: { label: "Notification", color: "text-muted-foreground" },
-	data: { label: "Data", color: "text-chart-2" },
 	analytics: { label: "Analytics", color: "text-score-yellow" },
 };
 
 const INTEGRATIONS: IntegrationDef[] = [
 	{
-		id: "base-rpc",
-		name: "Base L2 RPC",
-		description:
-			"Connect to Base network for on-chain agent data, transaction monitoring, and score verification.",
-		category: "blockchain",
-		icon: LinkIcon,
-		coreService: true,
-	},
-	{
-		id: "base-sepolia",
-		name: "Base Sepolia (Testnet)",
-		description:
-			"Testnet RPC endpoint for development and testing of agent scoring workflows.",
-		category: "blockchain",
-		icon: LinkIcon,
-		coreService: true,
-	},
-	{
-		id: "chainlink-cre",
-		name: "Chainlink CRE",
-		description:
-			"Decentralized oracle network for executing credit risk evaluation workflows on-chain.",
-		category: "oracle",
-		icon: ChartLineUp,
-		coreService: true,
-	},
-	{
 		id: "x402",
 		name: "x402 Protocol",
 		description:
-			"HTTP-native payment protocol for monitoring agent payment flows and transaction authorization.",
+			"HTTP-native payment protocol for agent payment flows and transaction authorization.",
 		category: "payment",
-		icon: CurrencyCircleDollar,
-		coreService: true,
-	},
-	{
-		id: "convex",
-		name: "Convex",
-		description:
-			"Real-time database for agent data, scores, activity logs, and dashboard state management.",
-		category: "data",
-		icon: Database,
-		coreService: true,
-	},
-	{
-		id: "clerk",
-		name: "Clerk Auth",
-		description:
-			"Authentication and identity management with Sign In With Ethereum (SIWE) support.",
-		category: "data",
-		icon: ShieldCheck,
-		coreService: true,
+		logo: "/integrations/x402.svg",
+		configFields: [
+			{
+				label: "Facilitator Address",
+				placeholder: "0x...",
+				key: "facilitator",
+			},
+		],
 	},
 	{
 		id: "coinbase-wallet",
@@ -138,7 +78,7 @@ const INTEGRATIONS: IntegrationDef[] = [
 		description:
 			"Connect Coinbase wallets for agent wallet management and USDC transaction monitoring.",
 		category: "payment",
-		icon: Wallet,
+		logo: "/integrations/coinbase.svg",
 		configFields: [
 			{
 				label: "API Key",
@@ -153,7 +93,7 @@ const INTEGRATIONS: IntegrationDef[] = [
 		description:
 			"Send score change alerts, budget warnings, and verification results to Slack channels.",
 		category: "notification",
-		icon: Bell,
+		logo: "/integrations/slack.svg",
 		configFields: [
 			{
 				label: "Webhook URL",
@@ -173,7 +113,7 @@ const INTEGRATIONS: IntegrationDef[] = [
 		description:
 			"Receive real-time notifications and query agent scores via a Telegram bot.",
 		category: "notification",
-		icon: Globe,
+		logo: "/integrations/telegram.svg",
 		configFields: [
 			{
 				label: "Bot Token",
@@ -193,7 +133,7 @@ const INTEGRATIONS: IntegrationDef[] = [
 		description:
 			"Integrate Qova trust scores into OpenAI agent decision-making pipelines.",
 		category: "analytics",
-		icon: Robot,
+		logo: "/integrations/openai.svg",
 		configFields: [
 			{
 				label: "API Key",
@@ -208,7 +148,7 @@ const INTEGRATIONS: IntegrationDef[] = [
 		description:
 			"Use Qova as a tool in LangChain agent chains for trust-gated operations.",
 		category: "analytics",
-		icon: Lightning,
+		logo: "/integrations/langchain.svg",
 	},
 	{
 		id: "vercel-ai-sdk",
@@ -216,7 +156,7 @@ const INTEGRATIONS: IntegrationDef[] = [
 		description:
 			"Embed Qova credit checks in Vercel AI SDK tool calls and agent workflows.",
 		category: "analytics",
-		icon: Code,
+		logo: "/integrations/vercel.svg",
 	},
 	{
 		id: "dune-analytics",
@@ -224,7 +164,7 @@ const INTEGRATIONS: IntegrationDef[] = [
 		description:
 			"Export agent score data and CRE execution metrics to Dune dashboards.",
 		category: "analytics",
-		icon: ChartBar,
+		logo: "/integrations/dune.svg",
 	},
 ];
 
@@ -261,7 +201,6 @@ export default function IntegrationsPage(): React.ReactElement {
 	);
 	const [connecting, setConnecting] = useState(false);
 
-	// Build a set of connected integration IDs from Convex
 	const connectedSet = useMemo(() => {
 		const set = new Set<string>();
 		if (connectedIntegrations) {
@@ -273,7 +212,6 @@ export default function IntegrationsPage(): React.ReactElement {
 	}, [connectedIntegrations]);
 
 	function getStatus(def: IntegrationDef): DisplayStatus {
-		if (def.coreService) return "connected";
 		if (connectedSet.has(def.id)) return "connected";
 		if (def.configFields) return "available";
 		return "coming_soon";
@@ -363,11 +301,8 @@ export default function IntegrationsPage(): React.ReactElement {
 				<div className="flex gap-2 flex-wrap">
 					{[
 						{ key: "all", label: "All" },
-						{ key: "blockchain", label: "Blockchain" },
-						{ key: "oracle", label: "Oracle" },
 						{ key: "payment", label: "Payment" },
 						{ key: "notification", label: "Notification" },
-						{ key: "data", label: "Data" },
 						{ key: "analytics", label: "Analytics" },
 					].map((f) => (
 						<button
@@ -390,7 +325,6 @@ export default function IntegrationsPage(): React.ReactElement {
 			<div className="px-4 lg:px-6">
 				<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
 					{filtered.map((integration) => {
-						const Icon = integration.icon;
 						const status = getStatus(integration);
 						const statusCfg = STATUS_CONFIG[status];
 						const catCfg = CATEGORY_CONFIG[integration.category];
@@ -398,20 +332,14 @@ export default function IntegrationsPage(): React.ReactElement {
 							<Card key={integration.id} className="group relative">
 								<CardHeader className="pb-3">
 									<div className="flex items-start justify-between">
-										<div className="flex items-center gap-2">
-											<div
-												className={`rounded-lg border p-2 ${
-													status === "connected"
-														? "bg-score-green/5 border-score-green/20"
-														: "bg-muted"
-												}`}
-											>
-												<Icon
-													className={`size-4 ${
-														status === "connected"
-															? "text-score-green"
-															: catCfg.color
-													}`}
+										<div className="flex items-center gap-3">
+											<div className="rounded-lg border p-1.5 bg-muted overflow-hidden shrink-0">
+												<Image
+													src={integration.logo}
+													alt={integration.name}
+													width={24}
+													height={24}
+													className="size-6 rounded"
 												/>
 											</div>
 											<div>
@@ -444,7 +372,7 @@ export default function IntegrationsPage(): React.ReactElement {
 										>
 											{catCfg.label}
 										</span>
-										{status === "connected" && !integration.coreService ? (
+										{status === "connected" ? (
 											<Button
 												variant="ghost"
 												size="sm"
@@ -454,10 +382,6 @@ export default function IntegrationsPage(): React.ReactElement {
 												Configure
 												<ArrowRight className="size-3 ml-1" />
 											</Button>
-										) : status === "connected" && integration.coreService ? (
-											<span className="text-[10px] text-score-green font-medium">
-												Core service
-											</span>
 										) : status === "available" ? (
 											<Button
 												variant="outline"
@@ -504,7 +428,13 @@ export default function IntegrationsPage(): React.ReactElement {
 					<DialogContent>
 						<DialogHeader>
 							<DialogTitle className="flex items-center gap-2">
-								<selectedIntegration.icon className="size-5" />
+								<Image
+									src={selectedIntegration.logo}
+									alt={selectedIntegration.name}
+									width={20}
+									height={20}
+									className="rounded"
+								/>
 								{selectedIntegration.name}
 							</DialogTitle>
 							<DialogDescription>
@@ -531,7 +461,7 @@ export default function IntegrationsPage(): React.ReactElement {
 							</div>
 						) : (
 							<div className="py-4 text-center text-sm text-muted-foreground">
-								This integration is automatically configured.
+								This integration is not yet configurable.
 							</div>
 						)}
 						<DialogFooter>
@@ -555,7 +485,7 @@ export default function IntegrationsPage(): React.ReactElement {
 							>
 								Cancel
 							</Button>
-							{!selectedIsConnected && (
+							{!selectedIsConnected && selectedIntegration.configFields && (
 								<Button
 									onClick={handleConnect}
 									disabled={connecting}
