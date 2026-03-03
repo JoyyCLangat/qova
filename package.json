@@ -1,6 +1,7 @@
 {
   "name": "qova",
   "private": true,
+  "packageManager": "bun@1.3.6",
   "workspaces": ["contracts", "sdk", "api", "dashboard", "www", "docs", "cre", "integrations/*"],
   "scripts": {
     "build": "turbo run build",
