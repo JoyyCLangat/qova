@@ -2,8 +2,11 @@
 
 import Link from "next/link"
 import { SectionCards } from "@/components/section-cards"
+import { QuickActions } from "@/components/quick-actions"
 import { ScoreTrendChart } from "@/components/charts/score-trend-chart"
-import { ScoreDistribution } from "@/components/charts/score-distribution"
+import { ChainDistributionChart } from "@/components/chain-distribution"
+import { BudgetHealth } from "@/components/budget-health"
+import { ScoreAlerts } from "@/components/score-alerts"
 import { ActivityChart } from "@/components/charts/activity-chart"
 import { ScoreBadge } from "@/components/scores/score-badge"
 import { Badge } from "@/components/ui/badge"
@@ -42,21 +45,38 @@ export default function OverviewPage(): React.ReactElement {
 
   return (
     <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+      {/* Header */}
       <div className="px-4 lg:px-6">
         <PageHeader
           title="Dashboard"
           subtitle="Real-time overview of your registered agents and the ecosystem"
         />
       </div>
+
+      {/* Section 1: Stats Row */}
       <SectionCards />
 
+      {/* Section 2: Quick Actions */}
       <div className="px-4 lg:px-6">
-        <ScoreTrendChart />
+        <QuickActions />
       </div>
 
-      <div className="grid gap-4 px-4 lg:grid-cols-2 lg:px-6">
-        <ScoreDistribution />
+      {/* Section 3: Score Trend + Chain Distribution */}
+      <div className="grid gap-4 px-4 lg:grid-cols-3 lg:px-6">
+        <div className="lg:col-span-2">
+          <ScoreTrendChart />
+        </div>
+        <ChainDistributionChart />
+      </div>
 
+      {/* Section 4: Budget Health + Score Alerts */}
+      <div className="grid gap-4 px-4 lg:grid-cols-2 lg:px-6">
+        <BudgetHealth />
+        <ScoreAlerts />
+      </div>
+
+      {/* Section 5: Top Agents + Activity Chart */}
+      <div className="grid gap-4 px-4 lg:grid-cols-2 lg:px-6">
         <Card>
           <CardHeader>
             <CardTitle>Top Agents</CardTitle>
@@ -108,11 +128,12 @@ export default function OverviewPage(): React.ReactElement {
             )}
           </CardContent>
         </Card>
+
+        <ActivityChart />
       </div>
 
-      <div className="grid gap-4 px-4 lg:grid-cols-2 lg:px-6">
-        <ActivityChart />
-
+      {/* Section 6: Recent Activity */}
+      <div className="px-4 lg:px-6">
         <Card>
           <CardHeader>
             <CardTitle>Recent Activity</CardTitle>

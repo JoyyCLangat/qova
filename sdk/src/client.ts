@@ -5,8 +5,24 @@
 
 import type { Hash, Hex } from "viem";
 import { type Address, createPublicClient, http, type PublicClient, type WalletClient } from "viem";
-import { base, baseSepolia } from "viem/chains";
+import { base, baseSepolia, type Chain as ViemChain } from "viem/chains";
 import { CHAIN_IDS, CONTRACTS, DEFAULT_RPC_URLS } from "./constants.js";
+
+/** SKALE Europa Hub chain definition for viem. */
+const skaleEuropa: ViemChain = {
+	id: 2046399126,
+	name: "SKALE Europa",
+	nativeCurrency: { name: "sFUEL", symbol: "sFUEL", decimals: 18 },
+	rpcUrls: {
+		default: { http: ["https://mainnet.skalenodes.com/v1/elated-tan-skat"] },
+	},
+	blockExplorers: {
+		default: {
+			name: "SKALE Explorer",
+			url: "https://elated-tan-skat.explorer.mainnet.skalenodes.com",
+		},
+	},
+};
 import { checkBudget, getBudgetStatus, recordSpend, setBudget } from "./contracts/budget.js";
 import { executeAgentAction } from "./contracts/core.js";
 
@@ -27,15 +43,17 @@ import { QovaClientConfigSchema } from "./types/config.js";
 import { QovaError } from "./types/errors.js";
 import type { TransactionStats, TransactionType } from "./types/transaction.js";
 
-const CHAIN_MAP = {
+const CHAIN_MAP: Record<string, ViemChain> = {
 	"base-sepolia": baseSepolia,
 	base: base,
-} as const;
+	"skale-europa": skaleEuropa,
+};
 
-const CHAIN_ID_FROM_NAME = {
+const CHAIN_ID_FROM_NAME: Record<string, number> = {
 	"base-sepolia": CHAIN_IDS.BASE_SEPOLIA,
 	base: CHAIN_IDS.BASE_MAINNET,
-} as const;
+	"skale-europa": CHAIN_IDS.SKALE_EUROPA,
+};
 
 /** The QovaClient returned by createQovaClient. */
 export type QovaClient = {
@@ -115,6 +133,13 @@ export function createQovaClient(config: QovaClientConfig): QovaClient {
 
 	const chainId = CHAIN_ID_FROM_NAME[config.chain];
 	const chain = CHAIN_MAP[config.chain];
+
+	if (chainId === undefined || !chain) {
+		throw new QovaError(
+			`Unknown chain: "${config.chain}"`,
+			"INVALID_CONFIG",
+		);
+	}
 
 	// Resolve contract addresses: user overrides > deployed defaults
 	const defaultContracts = CONTRACTS[chainId];

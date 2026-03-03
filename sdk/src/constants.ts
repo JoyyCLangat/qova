@@ -10,6 +10,7 @@ import type { ContractAddresses } from "./types/config.js";
 export const CHAIN_IDS = {
 	BASE_SEPOLIA: 84532,
 	BASE_MAINNET: 8453,
+	SKALE_EUROPA: 2046399126,
 } as const;
 
 /** Deployed contract addresses per network */
@@ -43,12 +44,14 @@ export function getContracts(chainId: number): ContractAddresses {
 export const BLOCK_EXPLORERS: Record<number, string> = {
 	[CHAIN_IDS.BASE_SEPOLIA]: "https://sepolia.basescan.org",
 	[CHAIN_IDS.BASE_MAINNET]: "https://basescan.org",
+	[CHAIN_IDS.SKALE_EUROPA]: "https://elated-tan-skat.explorer.mainnet.skalenodes.com",
 };
 
 /** Default RPC URLs per chain */
 export const DEFAULT_RPC_URLS: Record<number, string> = {
 	[CHAIN_IDS.BASE_SEPOLIA]: "https://sepolia.base.org",
 	[CHAIN_IDS.BASE_MAINNET]: "https://mainnet.base.org",
+	[CHAIN_IDS.SKALE_EUROPA]: "https://mainnet.skalenodes.com/v1/elated-tan-skat",
 };
 
 /** Minimum possible reputation score. */
@@ -72,7 +75,8 @@ export const SCORE_GRADE_THRESHOLDS = {
 } as const;
 
 /** Chain ID to viem chain name mapping for internal use. */
-export const CHAIN_ID_MAP: Record<number, "base-sepolia" | "base"> = {
+export const CHAIN_ID_MAP: Record<number, "base-sepolia" | "base" | "skale-europa"> = {
 	[CHAIN_IDS.BASE_SEPOLIA]: "base-sepolia",
 	[CHAIN_IDS.BASE_MAINNET]: "base",
+	[CHAIN_IDS.SKALE_EUROPA]: "skale-europa",
 };

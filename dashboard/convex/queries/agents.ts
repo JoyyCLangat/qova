@@ -69,6 +69,24 @@ export const search = query({
 	},
 });
 
+/** List agents filtered by chain ID (user's agents only). */
+export const listByChain = query({
+	args: { chainId: v.number() },
+	handler: async (ctx, { chainId }) => {
+		const identity = await ctx.auth.getUserIdentity();
+		if (!identity) return [];
+
+		const agents = await ctx.db
+			.query("agents")
+			.withIndex("by_owner_chain", (q) =>
+				q.eq("ownerId", identity.subject).eq("chainId", chainId),
+			)
+			.collect();
+		agents.sort((a, b) => b.score - a.score);
+		return agents;
+	},
+});
+
 /** Count agents per grade for distribution charts (user's agents only). */
 export const countByGrade = query({
 	args: {},

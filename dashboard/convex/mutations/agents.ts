@@ -57,6 +57,8 @@ export const upsertAgent = mutation({
 		perTxLimit: v.optional(v.string()),
 		dailySpent: v.optional(v.string()),
 		monthlySpent: v.optional(v.string()),
+		chainId: v.optional(v.number()),
+		budgetCurrency: v.optional(v.string()),
 	},
 	handler: async (ctx, args): Promise<string> => {
 		const identity = await ctx.auth.getUserIdentity();
@@ -104,9 +106,16 @@ export const upsertAgent = mutation({
 				...(args.perTxLimit !== undefined && { perTxLimit: args.perTxLimit }),
 				...(args.dailySpent !== undefined && { dailySpent: args.dailySpent }),
 				...(args.monthlySpent !== undefined && { monthlySpent: args.monthlySpent }),
+				...(args.chainId !== undefined && { chainId: args.chainId }),
+				...(args.budgetCurrency !== undefined && { budgetCurrency: args.budgetCurrency }),
 			});
 			return found._id;
 		}
+
+		const chainId = args.chainId ?? 8453;
+		const explorerBase = chainId === 2046399126
+			? "https://elated-tan-skat.explorer.mainnet.skalenodes.com"
+			: "https://basescan.org";
 
 		const id = await ctx.db.insert("agents", {
 			address: args.address,
@@ -120,7 +129,7 @@ export const upsertAgent = mutation({
 			isRegistered: args.isRegistered ?? true,
 			addressShort: args.addressShort ?? shortenAddress(args.address),
 			explorerUrl:
-				args.explorerUrl ?? `https://basescan.org/address/${args.address}`,
+				args.explorerUrl ?? `${explorerBase}/address/${args.address}`,
 			ownerId: userId,
 			name: args.name,
 			description: args.description,
@@ -133,6 +142,8 @@ export const upsertAgent = mutation({
 			perTxLimit: args.perTxLimit,
 			dailySpent: args.dailySpent,
 			monthlySpent: args.monthlySpent,
+			chainId,
+			budgetCurrency: args.budgetCurrency ?? "ETH",
 		});
 		return id;
 	},

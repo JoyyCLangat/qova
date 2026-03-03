@@ -194,6 +194,41 @@ export function useRecentCreExecutions(limit?: number): Array<{
 	return result ?? [];
 }
 
+/** Agents filtered by chain ID. */
+export function useAgentsByChain(chainId: number): Array<{
+	_id: string;
+	address: string;
+	score: number;
+	grade: string;
+	chainId?: number;
+	budgetCurrency?: string;
+}> {
+	const available = useConvexAvailable();
+	const result = useQuery(api.queries.agents.listByChain, available ? { chainId } : "skip");
+	return result ?? [];
+}
+
+/** Agent count per chain. */
+export function useChainDistribution(): Array<{
+	chainId: number;
+	count: number;
+}> {
+	const available = useConvexAvailable();
+	const result = useQuery(api.queries.stats.chainDistribution, available ? {} : "skip");
+	return result ?? [];
+}
+
+/** Budget totals grouped by currency. */
+export function useCurrencyBreakdown(): Array<{
+	currency: string;
+	totalBudget: number;
+	agentCount: number;
+}> {
+	const available = useConvexAvailable();
+	const result = useQuery(api.queries.stats.currencyBreakdown, available ? {} : "skip");
+	return result ?? [];
+}
+
 /** Single agent by address. */
 export function useAgentByAddress(address: string): {
 	_id: string;

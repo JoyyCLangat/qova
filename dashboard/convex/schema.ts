@@ -31,11 +31,15 @@ export default defineSchema({
     perTxLimit: v.optional(v.string()),
     dailySpent: v.optional(v.string()),
     monthlySpent: v.optional(v.string()),
+    // Multi-chain support
+    chainId: v.optional(v.number()), // default 8453 (Base)
+    budgetCurrency: v.optional(v.string()), // default "ETH"
   })
     .index("by_address", ["address"])
     .index("by_score", ["score"])
     .index("by_grade", ["grade"])
-    .index("by_owner", ["ownerId"]),
+    .index("by_owner", ["ownerId"])
+    .index("by_owner_chain", ["ownerId", "chainId"]),
 
   activity: defineTable({
     agent: v.string(),
@@ -46,6 +50,9 @@ export default defineSchema({
     txHash: v.optional(v.string()),
     timestamp: v.number(),
     ownerId: v.optional(v.string()),
+    // Multi-chain support
+    chainId: v.optional(v.number()),
+    currency: v.optional(v.string()),
   })
     .index("by_agent", ["agent"])
     .index("by_type", ["type"])

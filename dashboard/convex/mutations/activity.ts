@@ -16,6 +16,8 @@ export const logActivity = mutation({
 		amount: v.optional(v.string()),
 		txHash: v.optional(v.string()),
 		timestamp: v.optional(v.number()),
+		chainId: v.optional(v.number()),
+		currency: v.optional(v.string()),
 	},
 	handler: async (ctx, args): Promise<string> => {
 		const identity = await ctx.auth.getUserIdentity();
@@ -30,6 +32,8 @@ export const logActivity = mutation({
 			txHash: args.txHash,
 			timestamp: args.timestamp ?? Date.now(),
 			ownerId: identity.subject,
+			chainId: args.chainId,
+			currency: args.currency,
 		});
 		return id;
 	},

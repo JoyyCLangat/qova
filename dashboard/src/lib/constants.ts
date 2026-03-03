@@ -1,3 +1,5 @@
+import { formatTokenAmount } from "./tokens";
+
 /** Score grade thresholds -- mirrors @qova/core constants. */
 export const SCORE_GRADES = [
 	{ grade: "AAA", min: 950, color: "#22C55E", label: "Exceptional" },
@@ -62,19 +64,17 @@ export function shortenAddress(address: string): string {
 	return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
 
-/** Format wei to ETH string. */
+/** @deprecated Use `formatTokenAmount()` from `@/lib/tokens` instead. */
 export function formatEth(wei: bigint | string): string {
-	const value = typeof wei === "string" ? BigInt(wei) : wei;
-	const divisor = BigInt("1000000000000000000");
-	const whole = value / divisor;
-	const remainder = value % divisor;
-	const decimal = String(remainder).padStart(18, "0").slice(0, 4);
-	const formatted = `${whole}.${decimal}`.replace(/\.?0+$/, "");
-	return `${formatted || "0"} ETH`;
+	return formatTokenAmount(wei, "ETH", 18);
 }
 
-/** Explorer URL for Base Sepolia. */
-export const EXPLORER_URL = "https://sepolia.basescan.org";
+/** Re-export for convenience. */
+export { formatTokenAmount } from "./tokens";
+export { getExplorerUrl, getExplorerTxUrl } from "./chains";
+
+/** @deprecated Use `SUPPORTED_CHAINS` from `@/lib/chains` instead. */
+export const EXPLORER_URL = "https://basescan.org";
 
 /** Transaction type labels. */
 export const TX_TYPES = [
