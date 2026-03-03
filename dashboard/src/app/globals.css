@@ -2,6 +2,14 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Hide Clerk branding badge */
+.cl-footer,
+.cl-footerAction,
+[data-localization-key="footerPageLink__help"],
+.cl-internal-b3fm6y {
+	display: none !important;
+}
+
 :root {
 	--background: #F7F7F5;
 	--foreground: #1A1A1A;

@@ -82,7 +82,8 @@ export function Providers({
 						card: "shadow-none border border-border",
 						socialButtonsBlockButton: "shadow-none border border-border",
 						formFieldInput: "shadow-none border border-border",
-						footer: "hidden",
+						footer: { display: "none" },
+						footerAction: { display: "none" },
 					},
 				}}
 				signInUrl="/sign-in"
