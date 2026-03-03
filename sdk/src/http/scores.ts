@@ -20,7 +20,7 @@ export class Scores {
 	async breakdown(address: string): Promise<ScoreBreakdownResponse> {
 		return request<ScoreBreakdownResponse>(this.config, {
 			method: "GET",
-			path: `/api/scores/${address}`,
+			path: `/api/scores/${encodeURIComponent(address)}`,
 		});
 	}
 

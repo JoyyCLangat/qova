@@ -131,7 +131,7 @@ await qova.transactions.record({
 });
 ```
 
-### Verification — `qova.verify()`
+### Verification — `qova.verify(agent)`
 
 ```ts
 // One-call trust check (score + registration + sanctions)

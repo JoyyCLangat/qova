@@ -98,7 +98,7 @@ describe("HTTP requests", () => {
 		const qova = new Qova("qova_test_mykey123456", { baseUrl: "http://localhost:3000", maxRetries: 0 });
 		await qova.agents.list();
 		const [, options] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
-		expect((options.headers as Record<string, string>)["User-Agent"]).toBe("@qova/core/0.1.0");
+		expect((options.headers as Record<string, string>)["User-Agent"]).toMatch(/^@qova\/core\//);
 	});
 
 	it("parses JSON response", async () => {

@@ -94,8 +94,9 @@ async function cmdBreakdown(qova: Qova, address: string): Promise<void> {
 	console.log("Score: " + r.score + " (" + r.grade + ")\n");
 	console.log("Factors:");
 	for (const [name, detail] of Object.entries(r.factors)) {
-		const filled = "\u2588".repeat(Math.round(detail.normalized * 20));
-		const empty = "\u2591".repeat(20 - Math.round(detail.normalized * 20));
+		const clamped = Math.max(0, Math.min(1, detail.normalized));
+		const filled = "\u2588".repeat(Math.round(clamped * 20));
+		const empty = "\u2591".repeat(20 - Math.round(clamped * 20));
 		console.log("  " + name.padEnd(20) + " " + filled + empty + " " + detail.contribution + " (" + detail.raw + ")");
 	}
 }
@@ -154,12 +155,30 @@ async function main(): Promise<void> {
 
 	try {
 		switch (command) {
-			case "score": await cmdScore(qova, args[1]!); break;
-			case "verify": await cmdVerify(qova, args[1]!); break;
-			case "agent": await cmdAgent(qova, args[1]!); break;
-			case "budget": await cmdBudget(qova, args[1]!); break;
-			case "stats": await cmdStats(qova, args[1]!); break;
-			case "breakdown": await cmdBreakdown(qova, args[1]!); break;
+			case "score":
+				if (!args[1]) { console.error("Usage: qova score <address>"); process.exit(1); }
+				await cmdScore(qova, args[1]);
+				break;
+			case "verify":
+				if (!args[1]) { console.error("Usage: qova verify <address>"); process.exit(1); }
+				await cmdVerify(qova, args[1]);
+				break;
+			case "agent":
+				if (!args[1]) { console.error("Usage: qova agent <address>"); process.exit(1); }
+				await cmdAgent(qova, args[1]);
+				break;
+			case "budget":
+				if (!args[1]) { console.error("Usage: qova budget <address>"); process.exit(1); }
+				await cmdBudget(qova, args[1]);
+				break;
+			case "stats":
+				if (!args[1]) { console.error("Usage: qova stats <address>"); process.exit(1); }
+				await cmdStats(qova, args[1]);
+				break;
+			case "breakdown":
+				if (!args[1]) { console.error("Usage: qova breakdown <address>"); process.exit(1); }
+				await cmdBreakdown(qova, args[1]);
+				break;
 			case "health": await cmdHealth(qova); break;
 			case "keys":
 				if (args[1] === "list") await cmdKeysList(qova);

@@ -36,7 +36,7 @@ export class Keys {
 	async revoke(id: string): Promise<RevokeApiKeyResponse> {
 		return request<RevokeApiKeyResponse>(this.config, {
 			method: "DELETE",
-			path: `/api/keys/${id}`,
+			path: `/api/keys/${encodeURIComponent(id)}`,
 		});
 	}
 }

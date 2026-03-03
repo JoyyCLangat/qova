@@ -30,7 +30,7 @@ export class Agents {
 	async get(address: string): Promise<AgentDetailsResponse> {
 		return request<AgentDetailsResponse>(this.config, {
 			method: "GET",
-			path: `/api/agents/${address}`,
+			path: `/api/agents/${encodeURIComponent(address)}`,
 		});
 	}
 
@@ -38,7 +38,7 @@ export class Agents {
 	async score(address: string): Promise<AgentScoreResponse> {
 		return request<AgentScoreResponse>(this.config, {
 			method: "GET",
-			path: `/api/agents/${address}/score`,
+			path: `/api/agents/${encodeURIComponent(address)}/score`,
 		});
 	}
 
@@ -46,7 +46,7 @@ export class Agents {
 	async isRegistered(address: string): Promise<AgentRegisteredResponse> {
 		return request<AgentRegisteredResponse>(this.config, {
 			method: "GET",
-			path: `/api/agents/${address}/registered`,
+			path: `/api/agents/${encodeURIComponent(address)}/registered`,
 		});
 	}
 
@@ -67,7 +67,7 @@ export class Agents {
 	): Promise<UpdateScoreResponse> {
 		return request<UpdateScoreResponse>(this.config, {
 			method: "POST",
-			path: `/api/agents/${address}/score`,
+			path: `/api/agents/${encodeURIComponent(address)}/score`,
 			body: { score, reason },
 		});
 	}
@@ -78,6 +78,9 @@ export class Agents {
 		scores: number[],
 		reasons: string[],
 	): Promise<BatchUpdateScoresResponse> {
+		if (agents.length !== scores.length || agents.length !== reasons.length) {
+			throw new Error("agents, scores, and reasons arrays must have the same length");
+		}
 		return request<BatchUpdateScoresResponse>(this.config, {
 			method: "POST",
 			path: "/api/agents/batch-scores",

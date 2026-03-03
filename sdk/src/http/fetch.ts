@@ -5,6 +5,9 @@
 
 import { QovaApiError, QovaAuthError, QovaNetworkError, QovaRateLimitError } from "./errors.js";
 
+/** SDK version — used in User-Agent header. */
+export const SDK_VERSION = "0.1.0";
+
 export interface FetchConfig {
 	baseUrl: string;
 	apiKey: string;
@@ -61,6 +64,22 @@ function parseRetryAfter(header: string | null): number | null {
 }
 
 /**
+ * Safely parse JSON from a response, throwing QovaApiError on parse failure.
+ */
+function parseJson<T>(text: string, status: number): T {
+	try {
+		return JSON.parse(text) as T;
+	} catch {
+		throw new QovaApiError(
+			`Invalid JSON in response (status ${status})`,
+			status,
+			"INVALID_RESPONSE",
+			text,
+		);
+	}
+}
+
+/**
  * Execute an HTTP request with retry logic, auth, and error mapping.
  */
 export async function request<T>(config: FetchConfig, options: RequestOptions): Promise<T> {
@@ -68,43 +87,45 @@ export async function request<T>(config: FetchConfig, options: RequestOptions): 
 	const headers: Record<string, string> = {
 		"Content-Type": "application/json",
 		"Authorization": `Bearer ${config.apiKey}`,
-		"User-Agent": "@qova/core/0.1.0",
+		"User-Agent": `@qova/core/${SDK_VERSION}`,
 		...config.headers,
 	};
 
-	const fetchOptions: RequestInit = {
-		method: options.method,
-		headers,
-		body: options.body ? JSON.stringify(options.body) : undefined,
-		signal: AbortSignal.timeout(config.timeout),
-	};
-
+	const body = options.body ? JSON.stringify(options.body) : undefined;
 	let lastError: Error | null = null;
 
 	for (let attempt = 0; attempt <= config.maxRetries; attempt++) {
+		// Create a fresh AbortSignal per attempt so retries get their own timeout window
+		const fetchOptions: RequestInit = {
+			method: options.method,
+			headers,
+			body,
+			signal: AbortSignal.timeout(config.timeout),
+		};
+
 		try {
 			const response = await fetch(url, fetchOptions);
 
-			// Success
+			// Success — parse JSON safely
 			if (response.ok) {
 				const text = await response.text();
 				if (!text) return {} as T;
-				return JSON.parse(text) as T;
+				return parseJson<T>(text, response.status);
 			}
 
 			// Auth errors — don't retry
 			if (response.status === 401) {
-				const body = await response.json().catch(() => ({}));
+				const respBody = await response.json().catch(() => ({}));
 				throw new QovaAuthError(
-					(body as Record<string, string>).error ?? "Invalid API key",
+					(respBody as Record<string, string>).error ?? "Invalid API key",
 					response.status,
 				);
 			}
 
 			if (response.status === 403) {
-				const body = await response.json().catch(() => ({}));
+				const respBody = await response.json().catch(() => ({}));
 				throw new QovaAuthError(
-					(body as Record<string, string>).error ?? "Insufficient permissions",
+					(respBody as Record<string, string>).error ?? "Insufficient permissions",
 					response.status,
 				);
 			}
@@ -129,15 +150,15 @@ export async function request<T>(config: FetchConfig, options: RequestOptions): 
 			}
 
 			// Client error — don't retry
-			const body = await response.json().catch(() => ({}));
+			const respBody = await response.json().catch(() => ({}));
 			throw new QovaApiError(
-				(body as Record<string, string>).error ?? `Request failed with status ${response.status}`,
+				(respBody as Record<string, string>).error ?? `Request failed with status ${response.status}`,
 				response.status,
-				(body as Record<string, string>).code,
-				body,
+				(respBody as Record<string, string>).code,
+				respBody,
 			);
 		} catch (error) {
-			// Re-throw Qova errors
+			// Re-throw Qova errors (includes QovaApiError from parseJson)
 			if (
 				error instanceof QovaApiError ||
 				error instanceof QovaAuthError ||

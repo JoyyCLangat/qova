@@ -19,8 +19,8 @@
 export { Qova, type QovaOptions } from "./http/client.js";
 export { Agents } from "./http/agents.js";
 export { Scores } from "./http/scores.js";
-export { Transactions as TransactionsApi } from "./http/transactions.js";
-export { Budgets as BudgetsApi } from "./http/budgets.js";
+export { Transactions } from "./http/transactions.js";
+export { Budgets } from "./http/budgets.js";
 export { Verify } from "./http/verify.js";
 export { Keys } from "./http/keys.js";
 export {

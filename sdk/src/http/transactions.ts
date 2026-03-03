@@ -18,7 +18,7 @@ export class Transactions {
 	async stats(address: string): Promise<TransactionStatsResponse> {
 		return request<TransactionStatsResponse>(this.config, {
 			method: "GET",
-			path: `/api/transactions/${address}`,
+			path: `/api/transactions/${encodeURIComponent(address)}`,
 		});
 	}
 
