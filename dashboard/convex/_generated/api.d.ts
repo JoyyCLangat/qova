@@ -18,7 +18,6 @@ import type * as mutations_apiKeys from "../mutations/apiKeys.js";
 import type * as mutations_cre from "../mutations/cre.js";
 import type * as mutations_notifications from "../mutations/notifications.js";
 import type * as mutations_scores from "../mutations/scores.js";
-import type * as mutations_seed from "../mutations/seed.js";
 import type * as mutations_stats from "../mutations/stats.js";
 import type * as mutations_users from "../mutations/users.js";
 import type * as mutations_webhooks from "../mutations/webhooks.js";
@@ -52,7 +51,6 @@ declare const fullApi: ApiFromModules<{
   "mutations/cre": typeof mutations_cre;
   "mutations/notifications": typeof mutations_notifications;
   "mutations/scores": typeof mutations_scores;
-  "mutations/seed": typeof mutations_seed;
   "mutations/stats": typeof mutations_stats;
   "mutations/users": typeof mutations_users;
   "mutations/webhooks": typeof mutations_webhooks;

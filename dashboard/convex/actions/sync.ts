@@ -177,11 +177,8 @@ export const syncAllAgents = action({
       }
     }
 
-    // Recalculate system stats after full sync
-    await ctx.runMutation(api.mutations.stats.updateOverview, {
-      totalAgents: agents.length,
-      lastSyncedAt: new Date().toISOString(),
-    });
+    // Stats are now computed on-the-fly from user's agents
+    await ctx.runMutation(api.mutations.stats.updateOverview, {});
 
     return { total: agents.length, synced, errors };
   },

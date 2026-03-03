@@ -43,10 +43,12 @@ export default defineSchema({
     amount: v.optional(v.string()),
     txHash: v.optional(v.string()),
     timestamp: v.number(),
+    ownerId: v.optional(v.string()),
   })
     .index("by_agent", ["agent"])
     .index("by_type", ["type"])
-    .index("by_timestamp", ["timestamp"]),
+    .index("by_timestamp", ["timestamp"])
+    .index("by_owner", ["ownerId"]),
 
   scoreSnapshots: defineTable({
     agent: v.string(),
@@ -54,9 +56,11 @@ export default defineSchema({
     grade: v.string(),
     gradeColor: v.string(),
     timestamp: v.number(),
+    ownerId: v.optional(v.string()),
   })
     .index("by_agent", ["agent"])
-    .index("by_agent_time", ["agent", "timestamp"]),
+    .index("by_agent_time", ["agent", "timestamp"])
+    .index("by_owner", ["ownerId"]),
 
   systemStats: defineTable({
     key: v.string(),
