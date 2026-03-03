@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { trackEvent } from "./lib/trackEvent";
 
 export const list = query({
 	handler: async (ctx) => {
@@ -32,7 +33,7 @@ export const invite = mutation({
 		);
 		if (dupe) throw new Error("User already invited");
 
-		return await ctx.db.insert("teamMembers", {
+		const id = await ctx.db.insert("teamMembers", {
 			userId: identity.subject,
 			memberEmail: args.email,
 			memberName: args.name,
@@ -40,6 +41,14 @@ export const invite = mutation({
 			status: "invited",
 			invitedAt: Date.now(),
 		});
+		await trackEvent(ctx, {
+			userId: identity.subject,
+			action: "team.invite",
+			resource: "team_member",
+			resourceId: id,
+			metadata: { email: args.email, role: args.role },
+		});
+		return id;
 	},
 });
 
@@ -67,5 +76,11 @@ export const removeMember = mutation({
 		if (!member || member.userId !== identity.subject)
 			throw new Error("Not found");
 		await ctx.db.delete(id);
+		await trackEvent(ctx, {
+			userId: identity.subject,
+			action: "team.remove",
+			resource: "team_member",
+			metadata: { email: member.memberEmail, name: member.memberName },
+		});
 	},
 });

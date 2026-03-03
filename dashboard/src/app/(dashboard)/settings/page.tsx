@@ -6,6 +6,7 @@ import {
   Link as LinkIcon,
   ShieldCheck,
 } from "@phosphor-icons/react"
+import { useUser } from "@clerk/nextjs"
 import { useConvexAvailable } from "@/components/providers/convex-provider"
 import { StatusBadge } from "@/components/data/status-badge"
 import { Input } from "@/components/ui/input"
@@ -49,8 +50,8 @@ function SettingRow({
 }
 
 export default function SettingsPage(): React.ReactElement {
+  const { user } = useUser()
   const convexAvailable = useConvexAvailable()
-  const apiConfigured = !!process.env.NEXT_PUBLIC_API_URL
 
   return (
     <div className="px-4 lg:px-6">
@@ -78,20 +79,27 @@ export default function SettingsPage(): React.ReactElement {
                 <Label htmlFor="display-name">Display Name</Label>
                 <Input
                   id="display-name"
-                  placeholder="Qova User"
-                  disabled
+                  value={user?.fullName ?? user?.firstName ?? ""}
+                  readOnly
                   className="bg-muted"
                 />
                 <p className="text-[10px] text-muted-foreground">
-                  Managed by Clerk. Update in your profile.
+                  Managed by Clerk.{" "}
+                  <button
+                    type="button"
+                    onClick={() => user?.update && window.open("https://accounts.qova.cc/user", "_blank")}
+                    className="underline hover:text-foreground"
+                  >
+                    Update profile
+                  </button>
                 </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
-                  placeholder="user@qova.cc"
-                  disabled
+                  value={user?.primaryEmailAddress?.emailAddress ?? ""}
+                  readOnly
                   className="bg-muted"
                 />
                 <p className="text-[10px] text-muted-foreground">
@@ -100,15 +108,15 @@ export default function SettingsPage(): React.ReactElement {
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="org">Organization</Label>
+              <Label htmlFor="user-id">User ID</Label>
               <Input
-                id="org"
-                placeholder="My Organization"
-                disabled
-                className="bg-muted"
+                id="user-id"
+                value={user?.id ?? ""}
+                readOnly
+                className="bg-muted font-mono text-xs"
               />
               <p className="text-[10px] text-muted-foreground">
-                Organization membership is managed in Team settings.
+                Your unique Clerk identifier.
               </p>
             </div>
           </CardContent>
@@ -133,10 +141,10 @@ export default function SettingsPage(): React.ReactElement {
               <StatusBadge status={convexAvailable ? "active" : "inactive"} />
             </SettingRow>
             <SettingRow
-              label="API"
-              description="On-chain API for agent registration, scoring, and verification"
+              label="Actions"
+              description="Convex actions for agent registration, scoring, and verification"
             >
-              <StatusBadge status={apiConfigured ? "active" : "inactive"} />
+              <StatusBadge status={convexAvailable ? "active" : "inactive"} />
             </SettingRow>
             <SettingRow
               label="Authentication"

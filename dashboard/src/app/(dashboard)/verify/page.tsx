@@ -65,7 +65,7 @@ export default function VerifyPage(): React.ReactElement {
 			const res = await verifyAction({ agent: trimmed });
 			setResult(res);
 		} catch {
-			setError("Verification failed. The external API may be unavailable.");
+			setError("Verification failed. Please check the agent address and try again.");
 		} finally {
 			setLoading(false);
 		}

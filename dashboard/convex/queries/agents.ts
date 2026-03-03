@@ -87,6 +87,29 @@ export const listByChain = query({
 	},
 });
 
+/**
+ * Public query: get an agent's score by address (no auth required).
+ * Used by the badge API route which cannot authenticate as a user.
+ * Only returns score, grade, and address -- no sensitive data.
+ */
+export const getPublicScore = query({
+	args: { address: v.string() },
+	handler: async (ctx, { address }) => {
+		const normalized = address.toLowerCase();
+		const agents = await ctx.db
+			.query("agents")
+			.withIndex("by_address", (q) => q.eq("address", address))
+			.collect();
+		const found = agents.find((a) => a.address.toLowerCase() === normalized);
+		if (!found) return null;
+		return {
+			address: found.address,
+			score: found.score,
+			grade: found.grade,
+		};
+	},
+});
+
 /** Count agents per grade for distribution charts (user's agents only). */
 export const countByGrade = query({
 	args: {},

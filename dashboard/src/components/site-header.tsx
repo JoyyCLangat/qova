@@ -4,6 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Bell, MagnifyingGlass } from "@phosphor-icons/react"
 import { ChainSelector } from "@/components/chain-selector"
+import { useChainFilter } from "@/components/providers/chain-provider"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
@@ -61,6 +62,7 @@ function SearchTrigger(): React.ReactElement {
 
 export function SiteHeader(): React.ReactElement {
   const pathname = usePathname()
+  const { selectedChainId, setSelectedChainId } = useChainFilter()
 
   const title =
     routeTitles[pathname] ??
@@ -79,7 +81,12 @@ export function SiteHeader(): React.ReactElement {
         <h1 className="text-base font-medium">{title}</h1>
         <div className="ml-auto flex items-center gap-2">
           <SearchTrigger />
-          <ChainSelector compact showAll />
+          <ChainSelector
+            compact
+            showAll
+            value={selectedChainId || undefined}
+            onValueChange={setSelectedChainId}
+          />
           <Button variant="ghost" size="sm" asChild className="size-8 p-0">
             <Link href="/alerts">
               <Bell className="size-4" />

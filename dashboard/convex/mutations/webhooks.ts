@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation } from "../_generated/server";
+import { trackEvent } from "../lib/trackEvent";
 
 /** Allowed webhook event types. */
 const VALID_EVENTS = new Set([
@@ -60,6 +61,14 @@ export const create = mutation({
       createdAt: Date.now(),
     });
 
+    await trackEvent(ctx, {
+      userId: args.userId,
+      action: "webhook.create",
+      resource: "webhook",
+      resourceId: id,
+      metadata: { url: args.url, events: args.events },
+    });
+
     return { id, secret };
   },
 });
@@ -89,6 +98,12 @@ export const remove = mutation({
     if (!webhook || webhook.userId !== identity.subject) throw new Error("Forbidden");
 
     await ctx.db.delete(id);
+    await trackEvent(ctx, {
+      userId: identity.subject,
+      action: "webhook.delete",
+      resource: "webhook",
+      metadata: { url: webhook.url },
+    });
   },
 });
 

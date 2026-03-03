@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation } from "../_generated/server";
+import { trackEvent } from "../lib/trackEvent";
 
 /**
  * SHA-256 hash a string. Uses the Web Crypto API available in Convex runtime.
@@ -50,6 +51,19 @@ export const create = mutation({
       isActive: true,
     });
 
+    await trackEvent(ctx, {
+      userId: args.userId,
+      action: "api_key.create",
+      resource: "api_key",
+      resourceId: keyPrefix,
+      metadata: { name: args.name, scopes: args.scopes },
+      notification: {
+        type: "system",
+        title: "API Key Created",
+        message: `New API key "${args.name}" (${keyPrefix}...) has been created.`,
+      },
+    });
+
     return key; // Return full key only on creation
   },
 });
@@ -65,6 +79,13 @@ export const revoke = mutation({
     if (!key || key.userId !== identity.subject) throw new Error("Forbidden");
 
     await ctx.db.patch(id, { isActive: false });
+    await trackEvent(ctx, {
+      userId: identity.subject,
+      action: "api_key.revoke",
+      resource: "api_key",
+      resourceId: key.keyPrefix,
+      metadata: { name: key.name },
+    });
   },
 });
 
@@ -79,5 +100,12 @@ export const remove = mutation({
     if (!key || key.userId !== identity.subject) throw new Error("Forbidden");
 
     await ctx.db.delete(id);
+    await trackEvent(ctx, {
+      userId: identity.subject,
+      action: "api_key.delete",
+      resource: "api_key",
+      resourceId: key.keyPrefix,
+      metadata: { name: key.name },
+    });
   },
 });

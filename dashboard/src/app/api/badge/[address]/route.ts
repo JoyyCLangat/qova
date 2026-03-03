@@ -91,7 +91,7 @@ export async function GET(
   }
 
   try {
-    const agent = await convex.query(api.queries.agents.getByAddress, {
+    const agent = await convex.query(api.queries.agents.getPublicScore, {
       address,
     });
 
@@ -99,8 +99,7 @@ export async function GET(
       return new Response(renderFallbackBadge(), { headers });
     }
 
-    const grade = getGrade(agent.score);
-    return new Response(renderBadge(agent.score, grade), { headers });
+    return new Response(renderBadge(agent.score, agent.grade), { headers });
   } catch {
     return new Response(renderFallbackBadge(), { headers });
   }

@@ -37,6 +37,10 @@ import {
   useCreWorkflow,
   useCreExecutions,
 } from "@/hooks/use-convex-data"
+import { useMutation } from "convex/react"
+import { api } from "../../../../../convex/_generated/api"
+import { toast } from "sonner"
+import { useCallback, useState } from "react"
 import type { ComponentType } from "react"
 import type { IconProps } from "@phosphor-icons/react"
 
@@ -104,6 +108,22 @@ export default function WorkflowDetailPage(): React.ReactElement {
   const workflowId = params.workflow as string
   const workflow = useCreWorkflow(workflowId)
   const executions = useCreExecutions(workflowId, 50)
+  const updateStatus = useMutation(api.mutations.cre.updateWorkflowStatus)
+  const [toggling, setToggling] = useState(false)
+
+  const handleToggleStatus = useCallback(async () => {
+    if (!workflow) return
+    const newStatus = workflow.status === "active" ? "paused" : "active"
+    setToggling(true)
+    try {
+      await updateStatus({ workflowId, status: newStatus })
+      toast.success(`Workflow ${newStatus === "active" ? "resumed" : "paused"}`)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to update status")
+    } finally {
+      setToggling(false)
+    }
+  }, [workflow, workflowId, updateStatus])
 
   if (!workflow) {
     return <WorkflowDetailSkeleton />
@@ -157,6 +177,18 @@ export default function WorkflowDetailPage(): React.ReactElement {
                 {workflow.status}
               </Badge>
             )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleToggleStatus}
+              disabled={toggling}
+            >
+              {workflow.status === "active" ? (
+                <><Pause size={14} weight="fill" /> Pause</>
+              ) : (
+                <><Play size={14} weight="fill" /> Resume</>
+              )}
+            </Button>
           </div>
         </div>
       </div>

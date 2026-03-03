@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useMemo } from "react"
 import { useMutation } from "convex/react"
 import { api } from "../../convex/_generated/api"
 import {
@@ -29,6 +29,8 @@ import {
 } from "@/components/ui/select"
 import { useConvexAvailable } from "@/components/providers/convex-provider"
 import { toast } from "sonner"
+import { SUPPORTED_CHAINS, DEFAULT_CHAIN_ID } from "@/lib/chains"
+import { getTokensForChain } from "@/lib/tokens"
 
 const AGENT_TYPES = [
   { value: "trading", label: "Trading Bot" },
@@ -60,17 +62,25 @@ export function RegisterAgentDialog({
 
   const available = useConvexAvailable()
   const upsertAgent = useMutation(api.mutations.agents.upsertAgent)
+  const logActivity = useMutation(api.mutations.activity.logActivity)
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState({
     address: "",
     name: "",
     type: "trading",
     description: "",
+    chainId: DEFAULT_CHAIN_ID,
+    budgetCurrency: "ETH",
     dailyLimit: "1",
     monthlyLimit: "10",
     perTxLimit: "0.5",
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
+
+  const chainTokens = useMemo(
+    () => getTokensForChain(form.chainId),
+    [form.chainId],
+  )
 
   const validate = useCallback((): boolean => {
     const errs: Record<string, string> = {}
@@ -93,11 +103,24 @@ export function RegisterAgentDialog({
       name: "",
       type: "trading",
       description: "",
+      chainId: DEFAULT_CHAIN_ID,
+      budgetCurrency: "ETH",
       dailyLimit: "1",
       monthlyLimit: "10",
       perTxLimit: "0.5",
     })
     setErrors({})
+  }, [])
+
+  const handleChainChange = useCallback((chainIdStr: string): void => {
+    const chainId = Number(chainIdStr)
+    const tokens = getTokensForChain(chainId)
+    const defaultCurrency = tokens[0]?.symbol ?? "ETH"
+    setForm((prev) => ({
+      ...prev,
+      chainId,
+      budgetCurrency: defaultCurrency,
+    }))
   }, [])
 
   const handleSubmit = useCallback(async (): Promise<void> => {
@@ -115,10 +138,23 @@ export function RegisterAgentDialog({
 
       await upsertAgent({
         address: form.address,
+        name: form.name,
+        description: form.description || undefined,
         score: 0,
         isRegistered: true,
-        // Store the name + type in the grade field temporarily
-        // until the API computes a real grade
+        chainId: form.chainId,
+        budgetCurrency: form.budgetCurrency,
+        dailyLimit: form.dailyLimit,
+        monthlyLimit: form.monthlyLimit,
+        perTxLimit: form.perTxLimit,
+      })
+
+      await logActivity({
+        agent: form.address,
+        type: "registration",
+        description: `Agent "${form.name}" (${form.type}) registered on ${SUPPORTED_CHAINS.find((c) => c.id === form.chainId)?.name ?? "Base"}`,
+        chainId: form.chainId,
+        currency: form.budgetCurrency,
       })
 
       toast.success(`Agent "${form.name || addressShort}" registered successfully`)
@@ -129,7 +165,7 @@ export function RegisterAgentDialog({
     } finally {
       setLoading(false)
     }
-  }, [validate, available, form, upsertAgent, resetForm, onOpenChange])
+  }, [validate, available, form, upsertAgent, logActivity, resetForm, onOpenChange])
 
   return (
     <Dialog open={open} onOpenChange={(v) => { onOpenChange(v); if (!v) resetForm(); }}>
@@ -141,7 +177,7 @@ export function RegisterAgentDialog({
             Register Agent
           </DialogTitle>
           <DialogDescription>
-            Register a new AI agent on Base. This creates an on-chain record and begins reputation tracking.
+            Register a new AI agent. This creates a record and begins reputation tracking.
           </DialogDescription>
         </DialogHeader>
 
@@ -175,24 +211,44 @@ export function RegisterAgentDialog({
             )}
           </div>
 
-          {/* Type */}
-          <div className="grid gap-2">
-            <Label>Agent Type</Label>
-            <Select
-              value={form.type}
-              onValueChange={(v) => setForm({ ...form, type: v })}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {AGENT_TYPES.map((t) => (
-                  <SelectItem key={t.value} value={t.value}>
-                    {t.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          {/* Type + Chain row */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="grid gap-2">
+              <Label>Agent Type</Label>
+              <Select
+                value={form.type}
+                onValueChange={(v) => setForm({ ...form, type: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {AGENT_TYPES.map((t) => (
+                    <SelectItem key={t.value} value={t.value}>
+                      {t.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label>Chain</Label>
+              <Select
+                value={String(form.chainId)}
+                onValueChange={handleChainChange}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SUPPORTED_CHAINS.map((c) => (
+                    <SelectItem key={c.id} value={String(c.id)}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {/* Description */}
@@ -218,14 +274,31 @@ export function RegisterAgentDialog({
 
           {/* Budget section */}
           <div className="grid gap-2">
-            <Label className="text-sm font-medium">Budget Limits</Label>
+            <div className="flex items-center justify-between">
+              <Label className="text-sm font-medium">Budget Limits</Label>
+              <Select
+                value={form.budgetCurrency}
+                onValueChange={(v) => setForm({ ...form, budgetCurrency: v })}
+              >
+                <SelectTrigger className="w-[120px] h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {chainTokens.map((t) => (
+                    <SelectItem key={t.symbol} value={t.symbol}>
+                      {t.symbol}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="grid grid-cols-3 gap-3">
               <div className="grid gap-1">
                 <Label
                   htmlFor="reg-daily"
                   className="text-xs text-muted-foreground font-normal"
                 >
-                  Daily (ETH)
+                  Daily ({form.budgetCurrency})
                 </Label>
                 <Input
                   id="reg-daily"
@@ -244,7 +317,7 @@ export function RegisterAgentDialog({
                   htmlFor="reg-monthly"
                   className="text-xs text-muted-foreground font-normal"
                 >
-                  Monthly (ETH)
+                  Monthly ({form.budgetCurrency})
                 </Label>
                 <Input
                   id="reg-monthly"
@@ -263,7 +336,7 @@ export function RegisterAgentDialog({
                   htmlFor="reg-pertx"
                   className="text-xs text-muted-foreground font-normal"
                 >
-                  Per-Tx (ETH)
+                  Per-Tx ({form.budgetCurrency})
                 </Label>
                 <Input
                   id="reg-pertx"

@@ -31,6 +31,9 @@ export default defineSchema({
     perTxLimit: v.optional(v.string()),
     dailySpent: v.optional(v.string()),
     monthlySpent: v.optional(v.string()),
+    // Score tracking
+    previousScore: v.optional(v.number()),
+    previousGrade: v.optional(v.string()),
     // Multi-chain support
     chainId: v.optional(v.number()), // default 8453 (Base)
     budgetCurrency: v.optional(v.string()), // default "ETH"
@@ -71,12 +74,6 @@ export default defineSchema({
     .index("by_agent_time", ["agent", "timestamp"])
     .index("by_owner", ["ownerId"]),
 
-  systemStats: defineTable({
-    key: v.string(),
-    value: v.union(v.string(), v.number()),
-    updatedAt: v.number(),
-  }).index("by_key", ["key"]),
-
   // ─── Auth & Users ────────────────────────────────────────────────
   users: defineTable({
     clerkId: v.string(),
@@ -93,18 +90,6 @@ export default defineSchema({
     .index("by_clerk_id", ["clerkId"])
     .index("by_email", ["email"])
     .index("by_org", ["orgId"]),
-
-  organizations: defineTable({
-    clerkOrgId: v.optional(v.string()),
-    name: v.string(),
-    slug: v.string(),
-    imageUrl: v.optional(v.string()),
-    plan: v.string(), // "free" | "pro" | "enterprise"
-    createdBy: v.string(), // userId
-    createdAt: v.number(),
-  })
-    .index("by_clerk_org", ["clerkOrgId"])
-    .index("by_slug", ["slug"]),
 
   // ─── API Keys & Webhooks ─────────────────────────────────────────
   apiKeys: defineTable({

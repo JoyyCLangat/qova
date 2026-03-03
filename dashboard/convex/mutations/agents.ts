@@ -1,5 +1,6 @@
 import { mutation } from "../_generated/server";
 import { v } from "convex/values";
+import { trackEvent } from "../lib/trackEvent";
 
 const GRADE_THRESHOLDS: Array<{ grade: string; min: number }> = [
 	{ grade: "AAA", min: 950 },
@@ -109,6 +110,13 @@ export const upsertAgent = mutation({
 				...(args.chainId !== undefined && { chainId: args.chainId }),
 				...(args.budgetCurrency !== undefined && { budgetCurrency: args.budgetCurrency }),
 			});
+			await trackEvent(ctx, {
+				userId,
+				action: "agent.update",
+				resource: "agent",
+				resourceId: args.address,
+				metadata: { score: args.score, grade },
+			});
 			return found._id;
 		}
 
@@ -145,6 +153,19 @@ export const upsertAgent = mutation({
 			chainId,
 			budgetCurrency: args.budgetCurrency ?? "ETH",
 		});
+		await trackEvent(ctx, {
+			userId,
+			action: "agent.register",
+			resource: "agent",
+			resourceId: args.address,
+			metadata: { name: args.name, chainId, budgetCurrency: args.budgetCurrency ?? "ETH" },
+			notification: {
+				type: "system",
+				title: "Agent Registered",
+				message: `Agent ${shortenAddress(args.address)} has been registered with grade ${grade}.`,
+				agentAddress: args.address,
+			},
+		});
 		return id;
 	},
 });
@@ -172,6 +193,8 @@ export const updateScore = mutation({
 		const grade = computeGrade(score);
 		const gradeColor = computeGradeColor(score);
 
+		const previousGrade = found.grade;
+		const previousScore = found.score;
 		await ctx.db.patch(found._id, {
 			score,
 			grade,
@@ -182,6 +205,25 @@ export const updateScore = mutation({
 			scorePercentage: score / 10,
 			lastUpdated: new Date().toISOString(),
 			updateCount: found.updateCount + 1,
+			previousScore,
+			previousGrade,
+		});
+
+		const gradeChanged = previousGrade !== grade;
+		await trackEvent(ctx, {
+			userId: identity.subject,
+			action: "agent.score_update",
+			resource: "agent",
+			resourceId: address,
+			metadata: { previousScore: found.score, newScore: score, previousGrade, newGrade: grade },
+			notification: gradeChanged
+				? {
+						type: "score_change",
+						title: "Grade Changed",
+						message: `Agent ${found.addressShort} moved from ${previousGrade} to ${grade} (score: ${score}).`,
+						agentAddress: address,
+					}
+				: undefined,
 		});
 
 		return true;
@@ -206,6 +248,13 @@ export const removeAgent = mutation({
 		if (!found) return false;
 
 		await ctx.db.delete(found._id);
+		await trackEvent(ctx, {
+			userId: identity.subject,
+			action: "agent.remove",
+			resource: "agent",
+			resourceId: address,
+			metadata: { name: found.name, grade: found.grade },
+		});
 		return true;
 	},
 });

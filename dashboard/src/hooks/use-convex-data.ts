@@ -9,6 +9,8 @@ export function useAgentList(): Array<{
 	_id: string;
 	address: string;
 	addressShort: string;
+	name?: string;
+	description?: string;
 	score: number;
 	grade: string;
 	gradeColor: string;
@@ -27,6 +29,10 @@ export function useAgentList(): Array<{
 	perTxLimit?: string;
 	dailySpent?: string;
 	monthlySpent?: string;
+	chainId?: number;
+	budgetCurrency?: string;
+	previousScore?: number;
+	previousGrade?: string;
 }> {
 	const available = useConvexAvailable();
 	const result = useQuery(api.queries.agents.list, available ? {} : "skip");
@@ -234,6 +240,8 @@ export function useAgentByAddress(address: string): {
 	_id: string;
 	address: string;
 	addressShort: string;
+	name?: string;
+	description?: string;
 	score: number;
 	grade: string;
 	gradeColor: string;
@@ -252,6 +260,8 @@ export function useAgentByAddress(address: string): {
 	perTxLimit?: string;
 	dailySpent?: string;
 	monthlySpent?: string;
+	chainId?: number;
+	budgetCurrency?: string;
 } | null {
 	const available = useConvexAvailable();
 	const result = useQuery(api.queries.agents.getByAddress, available ? { address } : "skip");

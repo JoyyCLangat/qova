@@ -34,8 +34,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { Button } from "@/components/ui/button"
 import { PageHeader } from "@/components/shared/page-header"
 import { useCreWorkflows, useRecentCreExecutions } from "@/hooks/use-convex-data"
+import { useMutation } from "convex/react"
+import { api } from "../../../../convex/_generated/api"
+import { useConvexAvailable } from "@/components/providers/convex-provider"
+import { useEffect, useRef } from "react"
+import { toast } from "sonner"
 import type { ComponentType } from "react"
 import type { IconProps } from "@phosphor-icons/react"
 
@@ -97,6 +103,21 @@ function WorkflowStatusBadge({ status }: { status: string }): React.ReactElement
 export default function CrePage(): React.ReactElement {
   const workflows = useCreWorkflows()
   const recentExecutions = useRecentCreExecutions(15)
+  const available = useConvexAvailable()
+  const seedWorkflows = useMutation(api.mutations.cre.seedWorkflows)
+  const seeded = useRef(false)
+
+  // Auto-seed default workflows on first visit when empty
+  useEffect(() => {
+    if (available && workflows.length === 0 && !seeded.current) {
+      seeded.current = true
+      seedWorkflows({}).then((count) => {
+        if (count > 0) toast.success(`Initialized ${count} scoring workflows`)
+      }).catch(() => {
+        seeded.current = false
+      })
+    }
+  }, [available, workflows.length, seedWorkflows])
 
   return (
     <div className="flex flex-col gap-6 py-4 md:py-6">

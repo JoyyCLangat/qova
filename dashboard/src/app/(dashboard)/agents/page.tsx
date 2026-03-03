@@ -36,12 +36,15 @@ function timeAgo(iso: string): string {
 interface AgentRow {
 	address: string;
 	addressShort: string;
+	name?: string;
 	score: number;
 	grade: string;
 	isRegistered: boolean;
 	updateCount: number;
 	lastUpdated: string;
 	explorerUrl: string;
+	chainId?: number;
+	budgetCurrency?: string;
 }
 
 /* ------------------------------------------------------------------ */
@@ -54,8 +57,15 @@ const columns: ColumnDef<AgentRow>[] = [
 		header: "Agent",
 		enableSorting: false,
 		cell: ({ row }) => (
-			<Link href={`/agents/${row.original.address}`} className="font-mono text-sm hover:underline">
-				{row.original.addressShort}
+			<Link href={`/agents/${row.original.address}`} className="hover:underline">
+				{row.original.name ? (
+					<div className="flex flex-col">
+						<span className="text-sm font-medium">{row.original.name}</span>
+						<span className="font-mono text-xs text-muted-foreground">{row.original.addressShort}</span>
+					</div>
+				) : (
+					<span className="font-mono text-sm">{row.original.addressShort}</span>
+				)}
 			</Link>
 		),
 	},
@@ -136,12 +146,15 @@ export default function AgentsPage(): React.ReactElement {
 		return agents.map((a) => ({
 			address: a.address,
 			addressShort: a.addressShort,
+			name: a.name,
 			score: a.score,
 			grade: a.grade,
 			isRegistered: a.isRegistered,
 			updateCount: a.updateCount,
 			lastUpdated: a.lastUpdated,
 			explorerUrl: a.explorerUrl,
+			chainId: a.chainId,
+			budgetCurrency: a.budgetCurrency,
 		}));
 	}, [agents]);
 

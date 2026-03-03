@@ -4,9 +4,6 @@ import { action } from "../_generated/server";
 import { api } from "../_generated/api";
 import { v } from "convex/values";
 
-const API_URL =
-  process.env.QOVA_API_URL ?? "http://localhost:3001/api";
-
 function shortenAddress(address: string): string {
   if (address.length < 10) return address;
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
@@ -37,83 +34,35 @@ function computeGradeColor(score: number): string {
   return "#EF4444";
 }
 
-async function apiPost<T>(
-  path: string,
-  body: Record<string, unknown>
-): Promise<T> {
-  const res = await fetch(`${API_URL}${path}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    const text = await res.text().catch(() => "Request failed");
-    throw new Error(`API ${path} failed (${res.status}): ${text}`);
-  }
-  return res.json() as Promise<T>;
-}
-
-async function apiGet<T>(path: string): Promise<T> {
-  const res = await fetch(`${API_URL}${path}`, {
-    headers: { "Content-Type": "application/json" },
-  });
-  if (!res.ok) {
-    const text = await res.text().catch(() => "Request failed");
-    throw new Error(`API ${path} failed (${res.status}): ${text}`);
-  }
-  return res.json() as Promise<T>;
-}
-
-/** Register an agent on-chain, upsert in Convex, and log activity. */
+/** Register an agent in Convex and log activity. */
 export const registerAgent = action({
   args: { agent: v.string() },
   handler: async (ctx, { agent }): Promise<{ txHash: string; agent: string }> => {
-    const result = await apiPost<{ txHash: string; agent: string }>(
-      "/agents/register",
-      { agent }
-    );
-
-    // Fetch the full agent data after registration
-    let score = 0;
-    try {
-      const details = await apiGet<{ score: number }>(`/agents/${agent}`);
-      score = details.score;
-    } catch {
-      // Agent may not have a score yet right after registration
-    }
-
-    await ctx.runMutation(api.mutations.agents.upsertAgent, {
+    const id = await ctx.runMutation(api.mutations.agents.upsertAgent, {
       address: agent,
-      score,
+      score: 0,
       isRegistered: true,
       addressShort: shortenAddress(agent),
-      explorerUrl: `https://sepolia.basescan.org/address/${agent}`,
     });
 
     await ctx.runMutation(api.mutations.activity.logActivity, {
       agent,
       type: "Registration",
-      description: `Agent ${shortenAddress(agent)} registered on-chain`,
-      txHash: result.txHash,
+      description: `Agent ${shortenAddress(agent)} registered`,
     });
 
-    return result;
+    // Return Convex document ID as reference (no on-chain tx yet)
+    return { txHash: id, agent };
   },
 });
 
-/** Update agent score on-chain, sync to Convex, snapshot + log. */
+/** Update agent score in Convex, record snapshot, and log activity. */
 export const updateAgentScore = action({
   args: { address: v.string(), score: v.number() },
   handler: async (
     ctx,
     { address, score }
   ): Promise<{ txHash: string; agent: string; newScore: number }> => {
-    const result = await apiPost<{
-      txHash: string;
-      agent: string;
-      newScore: number;
-    }>(`/agents/${address}/score`, { score });
-
     const grade = computeGrade(score);
     const gradeColor = computeGradeColor(score);
 
@@ -133,14 +82,13 @@ export const updateAgentScore = action({
       agent: address,
       type: "ScoreUpdate",
       description: `Score updated to ${score} (${grade})`,
-      txHash: result.txHash,
     });
 
-    return result;
+    return { txHash: `score-${Date.now()}`, agent: address, newScore: score };
   },
 });
 
-/** Record a transaction on-chain and log in Convex. */
+/** Record a transaction event in Convex activity log. */
 export const recordTransaction = action({
   args: {
     agent: v.string(),
@@ -155,24 +103,19 @@ export const recordTransaction = action({
     const txTypeNames = ["Payment", "Transfer", "Swap", "Stake", "Other"];
     const typeName = txTypeNames[txType] ?? "Other";
 
-    const result = await apiPost<{ txHash: string; agent: string }>(
-      "/transactions/record",
-      { agent, txHash, amount, txType }
-    );
-
     await ctx.runMutation(api.mutations.activity.logActivity, {
       agent,
       type: typeName,
       description: `${typeName} of ${amount}`,
       amount,
-      txHash: result.txHash,
+      txHash,
     });
 
-    return result;
+    return { txHash, agent };
   },
 });
 
-/** Set budget limits for an agent on-chain and log in Convex. */
+/** Set budget limits for an agent in Convex. */
 export const setBudget = action({
   args: {
     address: v.string(),
@@ -184,18 +127,12 @@ export const setBudget = action({
     ctx,
     { address, dailyLimit, monthlyLimit, perTxLimit }
   ): Promise<{ txHash: string; agent: string }> => {
-    const result = await apiPost<{ txHash: string; agent: string }>(
-      `/budgets/${address}/set`,
-      { dailyLimit, monthlyLimit, perTxLimit }
-    );
-
     // Fetch current agent score so upsert doesn't overwrite it
     const existing = await ctx.runQuery(api.queries.agents.getByAddress, {
       address,
     });
     const currentScore = existing?.score ?? 0;
 
-    // Update cached budget data in the agent document
     await ctx.runMutation(api.mutations.agents.upsertAgent, {
       address,
       score: currentScore,
@@ -210,11 +147,11 @@ export const setBudget = action({
       description: `Budget set: daily=${dailyLimit}, monthly=${monthlyLimit}, perTx=${perTxLimit}`,
     });
 
-    return result;
+    return { txHash: `budget-${Date.now()}`, agent: address };
   },
 });
 
-/** Verify an agent's trust status and log the result. */
+/** Verify an agent using Convex data. Returns trust verification result. */
 export const verifyAgent = action({
   args: { agent: v.string() },
   handler: async (
@@ -229,20 +166,52 @@ export const verifyAgent = action({
     isRegistered: boolean;
     timestamp: string;
   }> => {
-    const result = await apiPost<{
-      agent: string;
-      verified: boolean;
-      score: number;
-      grade: string;
-      sanctionsClean: boolean;
-      isRegistered: boolean;
-      timestamp: string;
-    }>("/verify", { agent });
+    // Look up agent from Convex
+    const existing = await ctx.runQuery(api.queries.agents.getByAddress, {
+      address: agent,
+    });
+
+    const now = new Date().toISOString();
+
+    if (!existing) {
+      // Agent not found -- return unverified result
+      const result = {
+        agent,
+        verified: false,
+        score: 0,
+        grade: "D",
+        sanctionsClean: true,
+        isRegistered: false,
+        timestamp: now,
+      };
+
+      await ctx.runMutation(api.mutations.activity.logActivity, {
+        agent,
+        type: "Verification",
+        description: "Verification failed -- agent not found",
+      });
+
+      return result;
+    }
+
+    // Compute verification: score >= 250 (grade C or above) and registered
+    const verified = existing.score >= 250 && existing.isRegistered;
+    const grade = computeGrade(existing.score);
+
+    const result = {
+      agent,
+      verified,
+      score: existing.score,
+      grade,
+      sanctionsClean: true, // No sanctions data yet -- default clean
+      isRegistered: existing.isRegistered,
+      timestamp: now,
+    };
 
     await ctx.runMutation(api.mutations.activity.logActivity, {
       agent,
       type: "Verification",
-      description: `Verification ${result.verified ? "passed" : "failed"} -- Grade: ${result.grade}, Sanctions: ${result.sanctionsClean ? "clean" : "flagged"}`,
+      description: `Verification ${verified ? "passed" : "failed"} -- Grade: ${grade}, Score: ${existing.score}`,
     });
 
     return result;
