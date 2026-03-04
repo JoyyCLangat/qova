@@ -23,11 +23,12 @@ export class Transactions {
 	}
 
 	/** Record a new transaction for an agent. */
-	async record(input: RecordTransactionInput): Promise<TxHashResponse> {
+	async record(input: RecordTransactionInput, options?: { idempotencyKey?: string }): Promise<TxHashResponse> {
 		return request<TxHashResponse>(this.config, {
 			method: "POST",
 			path: "/api/transactions/record",
 			body: input,
+			idempotencyKey: options?.idempotencyKey,
 		});
 	}
 }

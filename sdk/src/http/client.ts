@@ -1,5 +1,5 @@
 import { QovaConfigError } from "./errors.js";
-import type { FetchConfig } from "./fetch.js";
+import type { FetchConfig, RequestInterceptor, ResponseInterceptor } from "./fetch.js";
 import { request } from "./fetch.js";
 import { Agents } from "./agents.js";
 import { Budgets } from "./budgets.js";
@@ -7,6 +7,7 @@ import { Keys } from "./keys.js";
 import { Scores } from "./scores.js";
 import { Transactions } from "./transactions.js";
 import { Verify } from "./verify.js";
+import { Webhooks } from "./webhooks.js";
 import type { HealthResponse, VerifyResponse } from "./types.js";
 
 export interface QovaOptions {
@@ -15,6 +16,10 @@ export interface QovaOptions {
 	maxRetries?: number;
 	retryDelay?: number;
 	headers?: Record<string, string>;
+	/** Called before every request. Useful for logging or metrics. */
+	onRequest?: RequestInterceptor;
+	/** Called after every response. Useful for logging or metrics. */
+	onResponse?: ResponseInterceptor;
 }
 
 const DEFAULT_BASE_URL = "https://api.qova.cc";
@@ -28,7 +33,10 @@ const DEFAULT_RETRY_DELAY = 1_000;
  * @example
  * ```ts
  * import Qova from "@qova/core";
- * const qova = new Qova("qova_your_api_key");
+ * const qova = new Qova("qova_your_api_key", {
+ *   onRequest: (req) => console.log(`→ ${req.method} ${req.url}`),
+ *   onResponse: (res) => console.log(`← ${res.status} (${res.durationMs}ms)`),
+ * });
  * const { score, grade } = await qova.agents.score("0x...");
  * ```
  */
@@ -43,6 +51,8 @@ export class Qova {
 	readonly budgets: Budgets;
 	/** API key management. */
 	readonly keys: Keys;
+	/** Webhook management — create, test, delivery logs. */
+	readonly webhooks: Webhooks;
 
 	private readonly _verify: Verify;
 	private readonly config: FetchConfig;
@@ -65,6 +75,8 @@ export class Qova {
 			maxRetries: options.maxRetries ?? DEFAULT_MAX_RETRIES,
 			retryDelay: options.retryDelay ?? DEFAULT_RETRY_DELAY,
 			headers: options.headers ?? {},
+			onRequest: options.onRequest,
+			onResponse: options.onResponse,
 		};
 
 		this.agents = new Agents(this.config);
@@ -72,6 +84,7 @@ export class Qova {
 		this.transactions = new Transactions(this.config);
 		this.budgets = new Budgets(this.config);
 		this.keys = new Keys(this.config);
+		this.webhooks = new Webhooks(this.config);
 		this._verify = new Verify(this.config);
 	}
 

@@ -3,10 +3,39 @@
  * @author Qova Engineering <eng@qova.cc>
  */
 
-export interface AgentListResponse {
-	agents: string[];
+// ── Pagination ──────────────────────────────────────────────────────
+
+export interface PaginationMeta {
 	total: number;
+	limit: number;
+	hasMore: boolean;
+	nextCursor: string | null;
 }
+
+export interface PaginatedResponse<T> {
+	data: T[];
+	pagination: PaginationMeta;
+}
+
+export interface PaginationParams {
+	/** Max items per page (1-100, default 20). */
+	limit?: number;
+	/** Cursor from previous response's `pagination.nextCursor`. */
+	cursor?: string;
+	/** Sort order: "asc" or "desc" (default "desc"). */
+	sort?: "asc" | "desc";
+}
+
+// ── Agent types ─────────────────────────────────────────────────────
+
+export interface AgentSummary {
+	address: string;
+	score: number;
+	isRegistered: boolean;
+}
+
+export interface AgentListResponse extends PaginatedResponse<AgentSummary> {}
+
 
 export interface AgentDetailsResponse {
 	agent: string;
@@ -201,4 +230,77 @@ export interface ApiKeyListResponse {
 export interface RevokeApiKeyResponse {
 	revoked: boolean;
 	id: string;
+}
+
+// ── Webhook types ───────────────────────────────────────────────────
+
+export type WebhookEventType =
+	| "agent.registered"
+	| "agent.score.updated"
+	| "transaction.recorded"
+	| "budget.exceeded"
+	| "key.created"
+	| "key.revoked";
+
+export interface CreateWebhookInput {
+	url: string;
+	events: WebhookEventType[];
+	description?: string;
+}
+
+export interface UpdateWebhookInput {
+	url?: string;
+	events?: WebhookEventType[];
+	isActive?: boolean;
+	description?: string;
+}
+
+export interface WebhookResponse {
+	id: string;
+	url: string;
+	events: string[];
+	isActive: boolean;
+	createdAt: string;
+}
+
+export interface CreateWebhookResponse extends WebhookResponse {
+	secret: string;
+	warning: string;
+}
+
+export interface WebhookListResponse {
+	webhooks: WebhookResponse[];
+}
+
+export interface DeleteWebhookResponse {
+	deleted: boolean;
+	id: string;
+}
+
+export interface WebhookDeliveryEntry {
+	webhookId: string;
+	event: string;
+	url: string;
+	attempt: number;
+	status: "success" | "failed" | "pending";
+	httpStatus?: number;
+	error?: string;
+	timestamp: number;
+	durationMs: number;
+}
+
+export interface WebhookDeliveriesResponse {
+	deliveries: WebhookDeliveryEntry[];
+}
+
+export interface WebhookTestResponse {
+	sent: boolean;
+	webhookId: string;
+	note: string;
+}
+
+export interface WebhookRotateSecretResponse {
+	id: string;
+	secret: string;
+	warning: string;
 }

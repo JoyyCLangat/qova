@@ -5,12 +5,15 @@
 
 import type { FetchConfig } from "./fetch.js";
 import { request } from "./fetch.js";
+import { PageIterator } from "./pagination.js";
 import type {
 	AgentDetailsResponse,
 	AgentListResponse,
 	AgentRegisteredResponse,
 	AgentScoreResponse,
+	AgentSummary,
 	BatchUpdateScoresResponse,
+	PaginationParams,
 	RegisterAgentResponse,
 	UpdateScoreResponse,
 } from "./types.js";
@@ -18,12 +21,35 @@ import type {
 export class Agents {
 	constructor(private readonly config: FetchConfig) {}
 
-	/** List all registered agents. */
-	async list(): Promise<AgentListResponse> {
+	/** List agents with cursor-based pagination. Returns one page. */
+	async list(params?: PaginationParams): Promise<AgentListResponse> {
+		const query: Record<string, string> = {};
+		if (params?.limit) query.limit = String(params.limit);
+		if (params?.cursor) query.cursor = params.cursor;
+		if (params?.sort) query.sort = params.sort;
+
 		return request<AgentListResponse>(this.config, {
 			method: "GET",
 			path: "/api/agents",
+			query: Object.keys(query).length > 0 ? query : undefined,
 		});
+	}
+
+	/**
+	 * Auto-paginating iterator — fetches all pages lazily.
+	 *
+	 * @example
+	 * ```ts
+	 * for await (const agent of qova.agents.listAll({ limit: 50 })) {
+	 *   console.log(agent);
+	 * }
+	 *
+	 * // Or collect into an array
+	 * const all = await qova.agents.listAll().toArray();
+	 * ```
+	 */
+	listAll(params?: PaginationParams): PageIterator<AgentSummary> {
+		return new PageIterator<AgentSummary>(this.config, "/api/agents", params);
 	}
 
 	/** Get enriched details for a single agent. */
@@ -51,11 +77,12 @@ export class Agents {
 	}
 
 	/** Register a new agent on-chain. */
-	async register(agent: string): Promise<RegisterAgentResponse> {
+	async register(agent: string, options?: { idempotencyKey?: string }): Promise<RegisterAgentResponse> {
 		return request<RegisterAgentResponse>(this.config, {
 			method: "POST",
 			path: "/api/agents/register",
 			body: { agent },
+			idempotencyKey: options?.idempotencyKey,
 		});
 	}
 

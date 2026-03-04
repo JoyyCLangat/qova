@@ -1,9 +1,10 @@
 /**
  * API key management endpoints.
  *
- * Allows authenticated users to create, list, and revoke API keys
- * programmatically. Requires a valid session token or existing API key
- * with admin scope.
+ * Create, list, and revoke API keys programmatically.
+ * Requires a valid API key with admin scope.
+ *
+ * Bootstrap: create your first key from the dashboard, then use it here.
  *
  * @author Qova Engineering <eng@qova.cc>
  */
@@ -11,9 +12,10 @@
 import { Hono } from "hono";
 import { validateBody } from "../middleware/validate.js";
 import { apiKeyAuth, getApiKey, API_SCOPES } from "../middleware/auth.js";
+import type { AppEnv } from "../types/env.js";
 import { z } from "zod";
 
-export const apiKeyRoutes = new Hono();
+export const apiKeyRoutes = new Hono<AppEnv>();
 
 /** Schema for creating a new API key. */
 const CreateApiKeyRequest = z.object({
@@ -32,7 +34,7 @@ const CreateApiKeyRequest = z.object({
 });
 
 /**
- * SHA-256 hash a string. Uses Web Crypto API.
+ * SHA-256 hash a string.
  */
 async function sha256(input: string): Promise<string> {
 	const encoder = new TextEncoder();
@@ -48,20 +50,49 @@ async function sha256(input: string): Promise<string> {
 function generateApiKey(): string {
 	const randomBytes = new Uint8Array(30);
 	crypto.getRandomValues(randomBytes);
-	const key =
+	return (
 		"qova_" +
 		Array.from(randomBytes)
 			.map((b) => b.toString(36).padStart(2, "0"))
 			.join("")
-			.slice(0, 40);
-	return key;
+			.slice(0, 40)
+	);
+}
+
+/**
+ * Call a Convex HTTP action endpoint with service authentication.
+ */
+async function callConvex<T>(path: string, body: Record<string, unknown>): Promise<T | null> {
+	const convexUrl = process.env.CONVEX_URL;
+	const serviceSecret = process.env.CONVEX_SERVICE_SECRET;
+
+	if (!convexUrl || !serviceSecret) {
+		console.error("[keys] CONVEX_URL or CONVEX_SERVICE_SECRET not set");
+		return null;
+	}
+
+	const res = await fetch(`${convexUrl}${path}`, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			"X-Service-Secret": serviceSecret,
+		},
+		body: JSON.stringify(body),
+	});
+
+	if (!res.ok) {
+		const text = await res.text().catch(() => "unknown error");
+		console.error(`[keys] Convex call to ${path} failed: ${res.status} ${text}`);
+		return null;
+	}
+
+	return (await res.json()) as T;
 }
 
 /**
  * POST /api/keys — Create a new API key.
  *
- * Returns the full key ONCE. The key cannot be retrieved again.
- * Store it securely.
+ * The full key is returned ONCE. It cannot be retrieved again.
  */
 apiKeyRoutes.post(
 	"/",
@@ -73,7 +104,7 @@ apiKeyRoutes.post(
 
 		const body = c.get("body") as z.infer<typeof CreateApiKeyRequest>;
 
-		// Generate the key
+		// Generate key on this server
 		const key = generateApiKey();
 		const keyPrefix = key.slice(0, 12);
 		const keyHash = await sha256(key);
@@ -82,33 +113,25 @@ apiKeyRoutes.post(
 			? Date.now() + body.expiresInDays * 86400000
 			: undefined;
 
-		// Store in Convex
-		const convexUrl = process.env.CONVEX_URL;
-		if (convexUrl) {
-			try {
-				await fetch(`${convexUrl}/api/mutation`, {
-					method: "POST",
-					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify({
-						path: "mutations/apiKeys:create",
-						args: {
-							userId: caller.userId,
-							name: body.name,
-							scopes: body.scopes,
-							expiresAt,
-						},
-					}),
-				});
-			} catch (error) {
-				console.error("[keys] Failed to store key in Convex:", error);
-				return c.json({ error: "Failed to create key" }, 500);
-			}
+		// Store via Convex HTTP action
+		const result = await callConvex<{ id: string }>("/api-keys/store", {
+			userId: caller.userId,
+			name: body.name,
+			scopes: body.scopes,
+			expiresAt,
+			keyPrefix,
+			keyHash,
+		});
+
+		if (!result) {
+			return c.json({ error: "Failed to create key" }, 500);
 		}
 
 		return c.json(
 			{
-				key, // ⚠️ Only returned once — store it securely
+				key,
 				keyPrefix,
+				id: result.id,
 				name: body.name,
 				scopes: body.scopes,
 				expiresAt: expiresAt ? new Date(expiresAt).toISOString() : null,
@@ -127,28 +150,11 @@ apiKeyRoutes.get(
 		const caller = getApiKey(c);
 		if (!caller) return c.json({ error: "Unauthorized" }, 401);
 
-		const convexUrl = process.env.CONVEX_URL;
-		if (!convexUrl) {
-			return c.json({ keys: [], hint: "CONVEX_URL not configured" });
-		}
+		const result = await callConvex<{ keys: unknown[] }>("/api-keys/list", {
+			userId: caller.userId,
+		});
 
-		try {
-			const res = await fetch(`${convexUrl}/api/query`, {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					path: "queries/apiKeys:listByUser",
-					args: { userId: caller.userId },
-				}),
-			});
-
-			if (!res.ok) return c.json({ keys: [] });
-
-			const result = await res.json() as { value: unknown[] };
-			return c.json({ keys: result.value ?? [] });
-		} catch {
-			return c.json({ keys: [] });
-		}
+		return c.json({ keys: result?.keys ?? [] });
 	},
 );
 
@@ -162,24 +168,15 @@ apiKeyRoutes.delete(
 
 		const id = c.req.param("id");
 
-		const convexUrl = process.env.CONVEX_URL;
-		if (!convexUrl) {
-			return c.json({ error: "CONVEX_URL not configured" }, 500);
-		}
+		const result = await callConvex<{ revoked: boolean }>("/api-keys/revoke", {
+			id,
+			userId: caller.userId,
+		});
 
-		try {
-			await fetch(`${convexUrl}/api/mutation`, {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					path: "mutations/apiKeys:revoke",
-					args: { id },
-				}),
-			});
-
-			return c.json({ revoked: true, id });
-		} catch {
+		if (!result) {
 			return c.json({ error: "Failed to revoke key" }, 500);
 		}
+
+		return c.json({ revoked: true, id });
 	},
 );

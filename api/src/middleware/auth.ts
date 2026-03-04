@@ -12,6 +12,7 @@
  */
 
 import type { Context, Next } from "hono";
+import { problemResponse } from "./problem.js";
 
 /** Well-known scopes that map to API key permissions. */
 export const API_SCOPES = {
@@ -95,7 +96,7 @@ async function defaultKeyValidator(keyHash: string): Promise<ApiKeyInfo | null> 
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({
-				path: "apiKeys:getByHash",
+				path: "queries/apiKeyLookup:getByHash",
 				args: { keyHash },
 			}),
 		});
@@ -130,8 +131,8 @@ async function defaultKeyValidator(keyHash: string): Promise<ApiKeyInfo | null> 
 }
 
 /**
- * Development-mode validator: accepts any key prefixed with qova_dev_
- * Only active when NODE_ENV !== "production".
+ * Development-mode validator: accepts any key prefixed with qova_
+ * Only active when NODE_ENV !== "production" and CONVEX_URL is unset.
  */
 function devModeValidator(_keyHash: string): ApiKeyInfo | null {
 	if (process.env.NODE_ENV === "production") return null;
@@ -162,6 +163,28 @@ function extractBearerToken(header: string | undefined): string | null {
 function hasScope(userScopes: string[], required: string): boolean {
 	if (userScopes.includes(API_SCOPES.ADMIN)) return true;
 	return userScopes.includes(required);
+}
+
+/**
+ * Fire-and-forget: update lastUsedAt for the key.
+ * Uses the Convex HTTP action bridge.
+ */
+function touchLastUsed(keyHash: string): void {
+	const convexUrl = process.env.CONVEX_URL;
+	const serviceSecret = process.env.CONVEX_SERVICE_SECRET;
+	if (!convexUrl || !serviceSecret) return;
+
+	// Non-blocking — don't await
+	fetch(`${convexUrl}/api-keys/touch`, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			"X-Service-Secret": serviceSecret,
+		},
+		body: JSON.stringify({ keyHash }),
+	}).catch(() => {
+		// Silently ignore — usage tracking is best-effort
+	});
 }
 
 export interface AuthOptions {
@@ -201,22 +224,14 @@ export function apiKeyAuth(
 				await next();
 				return;
 			}
-			return c.json(
-				{
-					error: "Authentication required",
-					code: "UNAUTHORIZED",
-					hint: "Include header: Authorization: Bearer qova_your_api_key",
-				},
-				401,
-			);
+			return problemResponse(c, 401, "UNAUTHORIZED", "Authentication Required",
+				"Include header: Authorization: Bearer qova_your_api_key");
 		}
 
 		// Validate format
 		if (token.length < 20) {
-			return c.json(
-				{ error: "Invalid API key format", code: "INVALID_KEY" },
-				401,
-			);
+			return problemResponse(c, 401, "INVALID_KEY", "Invalid API Key Format",
+				"API key must be at least 20 characters and start with qova_");
 		}
 
 		// Hash and check cache
@@ -227,25 +242,20 @@ export function apiKeyAuth(
 		if (!keyInfo) {
 			keyInfo = await validator(keyHash);
 			if (!keyInfo) {
-				return c.json(
-					{ error: "Invalid or expired API key", code: "INVALID_KEY" },
-					401,
-				);
+				return problemResponse(c, 401, "INVALID_KEY", "Invalid or Expired API Key",
+					"The provided API key is not valid or has expired");
 			}
 			setCachedKey(keyHash, keyInfo);
 		}
 
 		// Check scope
 		if (scope && !hasScope(keyInfo.scopes, scope)) {
-			return c.json(
-				{
-					error: `Insufficient permissions: requires scope "${scope}"`,
-					code: "FORBIDDEN",
-					scopes: keyInfo.scopes,
-				},
-				403,
-			);
+			return problemResponse(c, 403, "FORBIDDEN", "Insufficient Permissions",
+				`This API key requires scope "${scope}" to access this endpoint`);
 		}
+
+		// Track usage (fire-and-forget)
+		touchLastUsed(keyHash);
 
 		// Attach key info to context for downstream handlers
 		c.set("apiKey", keyInfo);
@@ -257,9 +267,6 @@ export function apiKeyAuth(
 
 /**
  * Helper to get the authenticated API key info from context.
- * @example
- * const key = getApiKey(c);
- * console.log(`Request from ${key.userId} via key ${key.keyPrefix}`);
  */
 export function getApiKey(c: Context): ApiKeyInfo | undefined {
 	return c.get("apiKey") as ApiKeyInfo | undefined;

@@ -23,6 +23,7 @@ describe("Qova constructor", () => {
 		expect(qova.transactions).toBeDefined();
 		expect(qova.budgets).toBeDefined();
 		expect(qova.keys).toBeDefined();
+		expect(qova.webhooks).toBeDefined();
 	});
 
 	it("accepts custom options", () => {
@@ -42,6 +43,7 @@ describe("Resources", () => {
 
 	it("agents has expected methods", () => {
 		expect(typeof qova.agents.list).toBe("function");
+		expect(typeof qova.agents.listAll).toBe("function");
 		expect(typeof qova.agents.get).toBe("function");
 		expect(typeof qova.agents.score).toBe("function");
 		expect(typeof qova.agents.isRegistered).toBe("function");
@@ -186,5 +188,204 @@ describe("Error classes", () => {
 		const err = new QovaConfigError("missing");
 		expect(err).toBeInstanceOf(Error);
 		expect(err.name).toBe("QovaConfigError");
+	});
+});
+
+describe("Interceptors", () => {
+	const originalFetch = globalThis.fetch;
+	afterEach(() => { globalThis.fetch = originalFetch; });
+
+	function mockFetch(status: number, body: unknown) {
+		globalThis.fetch = vi.fn().mockResolvedValue({
+			ok: status >= 200 && status < 300,
+			status,
+			headers: new Headers({ "x-request-id": "test-123" }),
+			json: async () => body,
+			text: async () => JSON.stringify(body),
+		});
+	}
+
+	it("fires onRequest before each request", async () => {
+		mockFetch(200, { status: "ok" });
+		const calls: string[] = [];
+		const qova = new Qova("qova_test_mykey123456", {
+			baseUrl: "http://localhost:3000",
+			maxRetries: 0,
+			onRequest: (req) => { calls.push(`${req.method} ${req.url}`); },
+		});
+		await qova.health();
+		expect(calls).toHaveLength(1);
+		expect(calls[0]).toContain("GET");
+		expect(calls[0]).toContain("/api/health");
+	});
+
+	it("fires onResponse after each request", async () => {
+		mockFetch(200, { status: "ok" });
+		const calls: number[] = [];
+		const qova = new Qova("qova_test_mykey123456", {
+			baseUrl: "http://localhost:3000",
+			maxRetries: 0,
+			onResponse: (res) => { calls.push(res.status); },
+		});
+		await qova.health();
+		expect(calls).toEqual([200]);
+	});
+
+	it("interceptor errors do not break requests", async () => {
+		mockFetch(200, { status: "ok" });
+		const qova = new Qova("qova_test_mykey123456", {
+			baseUrl: "http://localhost:3000",
+			maxRetries: 0,
+			onRequest: () => { throw new Error("interceptor crash"); },
+			onResponse: () => { throw new Error("interceptor crash"); },
+		});
+		const result = await qova.health();
+		expect(result.status).toBe("ok");
+	});
+});
+
+describe("Idempotency keys", () => {
+	const originalFetch = globalThis.fetch;
+	afterEach(() => { globalThis.fetch = originalFetch; });
+
+	it("sends Idempotency-Key header when provided", async () => {
+		globalThis.fetch = vi.fn().mockResolvedValue({
+			ok: true,
+			status: 200,
+			headers: new Headers(),
+			text: async () => JSON.stringify({ txHash: "0x123", agent: "0xabc" }),
+		});
+		const qova = new Qova("qova_test_mykey123456", { baseUrl: "http://localhost:3000", maxRetries: 0 });
+		await qova.agents.register("0xabc", { idempotencyKey: "my-unique-key" });
+		const [, options] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+		expect((options.headers as Record<string, string>)["Idempotency-Key"]).toBe("my-unique-key");
+	});
+
+	it("does not send Idempotency-Key when not provided", async () => {
+		globalThis.fetch = vi.fn().mockResolvedValue({
+			ok: true,
+			status: 200,
+			headers: new Headers(),
+			text: async () => JSON.stringify({ txHash: "0x123", agent: "0xabc" }),
+		});
+		const qova = new Qova("qova_test_mykey123456", { baseUrl: "http://localhost:3000", maxRetries: 0 });
+		await qova.agents.register("0xabc");
+		const [, options] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+		expect((options.headers as Record<string, string>)["Idempotency-Key"]).toBeUndefined();
+	});
+});
+
+describe("RFC 7807 error parsing", () => {
+	const originalFetch = globalThis.fetch;
+	afterEach(() => { globalThis.fetch = originalFetch; });
+
+	it("extracts detail from RFC 7807 response", async () => {
+		globalThis.fetch = vi.fn().mockResolvedValue({
+			ok: false,
+			status: 400,
+			headers: new Headers(),
+			json: async () => ({
+				type: "https://api.qova.cc/errors/INVALID_ADDRESS",
+				title: "Invalid Ethereum Address",
+				status: 400,
+				detail: "Parameter address must be a valid hex address",
+				code: "INVALID_ADDRESS",
+			}),
+		});
+		const qova = new Qova("qova_test_mykey123456", { baseUrl: "http://localhost:3000", maxRetries: 0 });
+		try {
+			await qova.agents.score("bad");
+			expect.unreachable("Should throw");
+		} catch (e) {
+			expect(e).toBeInstanceOf(QovaApiError);
+			const err = e as QovaApiError;
+			expect(err.message).toBe("Parameter address must be a valid hex address");
+			expect(err.code).toBe("INVALID_ADDRESS");
+			expect(err.status).toBe(400);
+		}
+	});
+
+	it("falls back to legacy error format", async () => {
+		globalThis.fetch = vi.fn().mockResolvedValue({
+			ok: false,
+			status: 400,
+			headers: new Headers(),
+			json: async () => ({ error: "old format", code: "LEGACY" }),
+		});
+		const qova = new Qova("qova_test_mykey123456", { baseUrl: "http://localhost:3000", maxRetries: 0 });
+		try {
+			await qova.agents.score("bad");
+			expect.unreachable("Should throw");
+		} catch (e) {
+			expect(e).toBeInstanceOf(QovaApiError);
+			const err = e as QovaApiError;
+			expect(err.message).toBe("old format");
+			expect(err.code).toBe("LEGACY");
+		}
+	});
+});
+
+describe("Pagination", () => {
+	const originalFetch = globalThis.fetch;
+	afterEach(() => { globalThis.fetch = originalFetch; });
+
+	it("list() sends pagination query params", async () => {
+		globalThis.fetch = vi.fn().mockResolvedValue({
+			ok: true,
+			status: 200,
+			headers: new Headers(),
+			text: async () => JSON.stringify({ data: [{ address: "0x1", score: 800, isRegistered: true }], pagination: { total: 1, limit: 5, hasMore: false, nextCursor: null } }),
+		});
+		const qova = new Qova("qova_test_mykey123456", { baseUrl: "http://localhost:3000", maxRetries: 0 });
+		await qova.agents.list({ limit: 5, cursor: "0xabc", sort: "asc" });
+		const [url] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+		expect(url).toContain("limit=5");
+		expect(url).toContain("cursor=0xabc");
+		expect(url).toContain("sort=asc");
+	});
+
+	it("listAll() auto-paginates through all pages", async () => {
+		let callCount = 0;
+		globalThis.fetch = vi.fn().mockImplementation(async (url: string) => {
+			callCount++;
+			const hasCursor = url.includes("cursor=");
+			const data = hasCursor
+				? [{ address: "0x3", score: 700, isRegistered: true }, { address: "0x4", score: 600, isRegistered: false }]
+				: [{ address: "0x1", score: 900, isRegistered: true }, { address: "0x2", score: 800, isRegistered: true }];
+			const hasMore = !hasCursor;
+			const nextCursor = hasMore ? "0x2" : null;
+			return {
+				ok: true,
+				status: 200,
+				headers: new Headers(),
+				text: async () => JSON.stringify({
+					data,
+					pagination: { total: 4, limit: 2, hasMore, nextCursor },
+				}),
+			};
+		});
+		const qova = new Qova("qova_test_mykey123456", { baseUrl: "http://localhost:3000", maxRetries: 0 });
+		const all = await qova.agents.listAll({ limit: 2 }).toArray();
+		expect(all.map((a) => a.address)).toEqual(["0x1", "0x2", "0x3", "0x4"]);
+		expect(callCount).toBe(2);
+	});
+
+	it("listAll().take(n) stops early", async () => {
+		globalThis.fetch = vi.fn().mockResolvedValue({
+			ok: true,
+			status: 200,
+			headers: new Headers(),
+			text: async () => JSON.stringify({
+				data: [
+					{ address: "0x1", score: 900, isRegistered: true },
+					{ address: "0x2", score: 800, isRegistered: true },
+					{ address: "0x3", score: 700, isRegistered: false },
+				],
+				pagination: { total: 10, limit: 3, hasMore: true, nextCursor: "0x3" },
+			}),
+		});
+		const qova = new Qova("qova_test_mykey123456", { baseUrl: "http://localhost:3000", maxRetries: 0 });
+		const first2 = await qova.agents.listAll({ limit: 3 }).take(2);
+		expect(first2.map((a) => a.address)).toEqual(["0x1", "0x2"]);
 	});
 });

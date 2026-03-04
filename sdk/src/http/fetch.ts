@@ -6,7 +6,13 @@
 import { QovaApiError, QovaAuthError, QovaNetworkError, QovaRateLimitError } from "./errors.js";
 
 /** SDK version — used in User-Agent header. */
-export const SDK_VERSION = "0.1.0";
+export const SDK_VERSION = "0.2.0";
+
+/** Interceptor called before a request is sent. */
+export type RequestInterceptor = (req: { method: string; url: string; headers: Record<string, string>; body?: string }) => void;
+
+/** Interceptor called after a response is received. */
+export type ResponseInterceptor = (res: { method: string; url: string; status: number; durationMs: number; headers: Record<string, string> }) => void;
 
 export interface FetchConfig {
 	baseUrl: string;
@@ -15,13 +21,17 @@ export interface FetchConfig {
 	maxRetries: number;
 	retryDelay: number;
 	headers: Record<string, string>;
+	onRequest?: RequestInterceptor;
+	onResponse?: ResponseInterceptor;
 }
 
-interface RequestOptions {
-	method: "GET" | "POST" | "PUT" | "DELETE";
+export interface RequestOptions {
+	method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 	path: string;
 	body?: unknown;
 	query?: Record<string, string>;
+	/** Optional idempotency key for safe retries on mutations. */
+	idempotencyKey?: string;
 }
 
 /**
@@ -29,6 +39,14 @@ interface RequestOptions {
  */
 function sleep(ms: number): Promise<void> {
 	return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Add jitter to a delay (±25%) to prevent thundering herd.
+ */
+function jitter(ms: number): number {
+	const factor = 0.75 + Math.random() * 0.5; // 0.75 – 1.25
+	return Math.round(ms * factor);
 }
 
 /**
@@ -64,6 +82,28 @@ function parseRetryAfter(header: string | null): number | null {
 }
 
 /**
+ * Parse RFC 7807 Problem Details from an error response body.
+ */
+interface ProblemDetail {
+	type?: string;
+	title?: string;
+	status?: number;
+	detail?: string;
+	code?: string;
+	errors?: Array<{ field: string; message: string }>;
+	retryAfter?: number;
+}
+
+function parseProblemDetail(body: unknown): ProblemDetail | null {
+	if (!body || typeof body !== "object") return null;
+	const obj = body as Record<string, unknown>;
+	if (typeof obj.type === "string" && typeof obj.status === "number") {
+		return obj as unknown as ProblemDetail;
+	}
+	return null;
+}
+
+/**
  * Safely parse JSON from a response, throwing QovaApiError on parse failure.
  */
 function parseJson<T>(text: string, status: number): T {
@@ -91,10 +131,26 @@ export async function request<T>(config: FetchConfig, options: RequestOptions): 
 		...config.headers,
 	};
 
+	// Add idempotency key for mutations
+	if (options.idempotencyKey) {
+		headers["Idempotency-Key"] = options.idempotencyKey;
+	}
+
 	const body = options.body ? JSON.stringify(options.body) : undefined;
 	let lastError: Error | null = null;
 
 	for (let attempt = 0; attempt <= config.maxRetries; attempt++) {
+		const startTime = Date.now();
+
+		// Fire onRequest interceptor
+		if (config.onRequest) {
+			try {
+				config.onRequest({ method: options.method, url, headers: { ...headers }, body });
+			} catch {
+				// Interceptor errors should not break the request
+			}
+		}
+
 		// Create a fresh AbortSignal per attempt so retries get their own timeout window
 		const fetchOptions: RequestInit = {
 			method: options.method,
@@ -105,6 +161,18 @@ export async function request<T>(config: FetchConfig, options: RequestOptions): 
 
 		try {
 			const response = await fetch(url, fetchOptions);
+			const durationMs = Date.now() - startTime;
+
+			// Fire onResponse interceptor
+			if (config.onResponse) {
+				const respHeaders: Record<string, string> = {};
+				response.headers.forEach((v, k) => { respHeaders[k] = v; });
+				try {
+					config.onResponse({ method: options.method, url, status: response.status, durationMs, headers: respHeaders });
+				} catch {
+					// Interceptor errors should not break the request
+				}
+			}
 
 			// Success — parse JSON safely
 			if (response.ok) {
@@ -114,18 +182,11 @@ export async function request<T>(config: FetchConfig, options: RequestOptions): 
 			}
 
 			// Auth errors — don't retry
-			if (response.status === 401) {
+			if (response.status === 401 || response.status === 403) {
 				const respBody = await response.json().catch(() => ({}));
+				const problem = parseProblemDetail(respBody);
 				throw new QovaAuthError(
-					(respBody as Record<string, string>).error ?? "Invalid API key",
-					response.status,
-				);
-			}
-
-			if (response.status === 403) {
-				const respBody = await response.json().catch(() => ({}));
-				throw new QovaAuthError(
-					(respBody as Record<string, string>).error ?? "Insufficient permissions",
+					problem?.detail ?? (respBody as Record<string, string>).error ?? "Authentication failed",
 					response.status,
 				);
 			}
@@ -134,7 +195,7 @@ export async function request<T>(config: FetchConfig, options: RequestOptions): 
 			if (response.status === 429) {
 				const retryAfter = parseRetryAfter(response.headers.get("Retry-After"));
 				if (attempt < config.maxRetries) {
-					const delay = retryAfter ?? config.retryDelay * 2 ** attempt;
+					const delay = retryAfter ?? jitter(config.retryDelay * 2 ** attempt);
 					await sleep(delay);
 					continue;
 				}
@@ -143,18 +204,19 @@ export async function request<T>(config: FetchConfig, options: RequestOptions): 
 				);
 			}
 
-			// Server errors — retry
+			// Server errors — retry with jitter
 			if (isRetryable(response.status) && attempt < config.maxRetries) {
-				await sleep(config.retryDelay * 2 ** attempt);
+				await sleep(jitter(config.retryDelay * 2 ** attempt));
 				continue;
 			}
 
-			// Client error — don't retry
+			// Client error — parse RFC 7807 if available, don't retry
 			const respBody = await response.json().catch(() => ({}));
+			const problem = parseProblemDetail(respBody);
 			throw new QovaApiError(
-				(respBody as Record<string, string>).error ?? `Request failed with status ${response.status}`,
+				problem?.detail ?? (respBody as Record<string, string>).error ?? `Request failed with status ${response.status}`,
 				response.status,
-				(respBody as Record<string, string>).code,
+				problem?.code ?? (respBody as Record<string, string>).code,
 				respBody,
 			);
 		} catch (error) {
@@ -167,11 +229,11 @@ export async function request<T>(config: FetchConfig, options: RequestOptions): 
 				throw error;
 			}
 
-			// Network / timeout errors — retry
+			// Network / timeout errors — retry with jitter
 			lastError = error instanceof Error ? error : new Error(String(error));
 
 			if (attempt < config.maxRetries) {
-				await sleep(config.retryDelay * 2 ** attempt);
+				await sleep(jitter(config.retryDelay * 2 ** attempt));
 				continue;
 			}
 		}

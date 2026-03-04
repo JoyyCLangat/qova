@@ -10,6 +10,8 @@ export { Transactions } from "./transactions.js";
 export { Budgets } from "./budgets.js";
 export { Verify } from "./verify.js";
 export { Keys } from "./keys.js";
+export { Webhooks } from "./webhooks.js";
+export { PageIterator } from "./pagination.js";
 export {
 	QovaApiError,
 	QovaAuthError,
@@ -17,4 +19,5 @@ export {
 	QovaNetworkError,
 	QovaConfigError,
 } from "./errors.js";
+export type { RequestInterceptor, ResponseInterceptor } from "./fetch.js";
 export type * from "./types.js";
